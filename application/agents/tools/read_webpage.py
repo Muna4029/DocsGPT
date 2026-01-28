@@ -1,7 +1,10 @@
+from urllib.parse import urlparse
+
 import requests
 from markdownify import markdownify
+
 from application.agents.tools.base import Tool
-from urllib.parse import urlparse
+
 
 class ReadWebpageTool(Tool):
     """
@@ -35,17 +38,16 @@ class ReadWebpageTool(Tool):
         parsed_url = urlparse(url)
         if not parsed_url.scheme:
             url = "http://" + url
-        
+
         try:
-            response = requests.get(url, timeout=10, headers={'User-Agent': 'DocsGPT-Agent/1.0'})
+            response = requests.get(url, timeout=10, headers={"User-Agent": "DocsGPT-Agent/1.0"})
             response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
-            
+
             html_content = response.text
-            #soup = BeautifulSoup(html_content, 'html.parser')
-            
-            
+            # soup = BeautifulSoup(html_content, 'html.parser')
+
             markdown_content = markdownify(html_content, heading_style="ATX", newline_style="BACKSLASH")
-            
+
             return markdown_content
 
         except requests.exceptions.RequestException as e:

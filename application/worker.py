@@ -6,10 +6,9 @@ import os
 import shutil
 import string
 import tempfile
-from typing import Any, Dict
 import zipfile
-
 from collections import Counter
+from typing import Any, Dict
 from urllib.parse import urljoin
 
 import requests
@@ -18,7 +17,6 @@ from bson.objectid import ObjectId
 
 from application.agents.agent_creator import AgentCreator
 from application.api.answer.services.stream_processor import get_prompt
-
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
 from application.parser.chunking import Chunker
@@ -28,7 +26,6 @@ from application.parser.file.bulk import SimpleDirectoryReader
 from application.parser.remote.remote_creator import RemoteCreator
 from application.parser.schema.base import Document
 from application.retriever.retriever_creator import RetrieverCreator
-
 from application.storage.storage_creator import StorageCreator
 from application.utils import count_tokens_docs, num_tokens_from_string
 
@@ -57,9 +54,7 @@ def generate_random_string(length):
     return "".join([string.ascii_letters[i % 52] for i in range(length)])
 
 
-current_dir = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def extract_zip_recursive(zip_path, extract_to, current_depth=0, max_depth=5):
@@ -129,9 +124,7 @@ def upload_index(full_path, file_data):
                 data=file_data,
             )
         else:
-            response = requests.post(
-                urljoin(settings.API_URL, "/api/upload_index"), data=file_data
-            )
+            response = requests.post(urljoin(settings.API_URL, "/api/upload_index"), data=file_data)
         response.raise_for_status()
     except (requests.RequestException, FileNotFoundError) as e:
         logging.error(f"Error uploading index: {e}")
@@ -213,10 +206,7 @@ def run_agent_logic(agent_config, input_data):
 # Define the main function for ingesting and processing documents.
 
 
-def ingest_worker(
-    self, directory, formats, job_name, file_path, filename, user, 
-    retriever="classic"
-):
+def ingest_worker(self, directory, formats, job_name, file_path, filename, user, retriever="classic"):
     """
     Ingest and process documents.
 
@@ -240,7 +230,7 @@ def ingest_worker(
     sample = False
 
     storage = StorageCreator.get_storage()
-    
+
     logging.info(f"Ingest path: {file_path}", extra={"user": user, "job": job_name})
 
     # Create temporary working directory
@@ -253,17 +243,17 @@ def ingest_worker(
                 # Handle directory case
                 logging.info(f"Processing directory: {file_path}")
                 files_list = storage.list_files(file_path)
-                
+
                 for storage_file_path in files_list:
                     if storage.is_directory(storage_file_path):
                         continue
-                        
+
                     # Create relative path structure in temp directory
                     rel_path = os.path.relpath(storage_file_path, file_path)
                     local_file_path = os.path.join(temp_dir, rel_path)
-                    
+
                     os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
-                    
+
                     # Download file
                     try:
                         file_data = storage.get_file(storage_file_path)
@@ -276,7 +266,7 @@ def ingest_worker(
                 # Handle single file case
                 temp_filename = os.path.basename(file_path)
                 temp_file_path = os.path.join(temp_dir, temp_filename)
-                
+
                 file_data = storage.get_file(file_path)
                 with open(temp_file_path, "wb") as f:
                     f.write(file_data.read())
@@ -284,9 +274,7 @@ def ingest_worker(
                 # Handle zip files
                 if temp_filename.endswith(".zip"):
                     logging.info(f"Extracting zip file: {temp_filename}")
-                    extract_zip_recursive(
-                        temp_file_path, temp_dir, current_depth=0, max_depth=RECURSION_DEPTH
-                    )
+                    extract_zip_recursive(temp_file_path, temp_dir, current_depth=0, max_depth=RECURSION_DEPTH)
 
             self.update_state(state="PROGRESS", meta={"current": 1})
             if sample:
@@ -300,8 +288,8 @@ def ingest_worker(
                 file_metadata=metadata_from_filename,
             )
             raw_docs = reader.load_data()
-            
-            directory_structure = getattr(reader, 'directory_structure', {})
+
+            directory_structure = getattr(reader, "directory_structure", {})
             logging.info(f"Directory structure from reader: {directory_structure}")
 
             chunker = Chunker(
@@ -391,7 +379,6 @@ def reingest_source_worker(self, source_id, user):
                     if storage.is_directory(storage_file_path):
                         continue
 
-
                     rel_path = os.path.relpath(storage_file_path, source_file_path)
                     local_file_path = os.path.join(temp_dir, rel_path)
 
@@ -410,9 +397,21 @@ def reingest_source_worker(self, source_id, user):
                 input_dir=temp_dir,
                 recursive=True,
                 required_exts=[
-                    ".rst", ".md", ".pdf", ".txt", ".docx", ".csv", ".epub",
-                    ".html", ".mdx", ".json", ".xlsx", ".pptx", ".png",
-                    ".jpg", ".jpeg",
+                    ".rst",
+                    ".md",
+                    ".pdf",
+                    ".txt",
+                    ".docx",
+                    ".csv",
+                    ".epub",
+                    ".html",
+                    ".mdx",
+                    ".json",
+                    ".xlsx",
+                    ".pptx",
+                    ".png",
+                    ".jpg",
+                    ".jpeg",
                 ],
                 exclude_hidden=True,
                 file_metadata=metadata_from_filename,
@@ -565,14 +564,14 @@ def reingest_source_worker(self, source_id, user):
                 # 3) Update source directory structure timestamp
                 try:
                     total_tokens = sum(reader.file_token_counts.values())
-                    
+
                     sources_collection.update_one(
                         {"_id": ObjectId(source_id)},
                         {
                             "$set": {
                                 "directory_structure": directory_structure,
                                 "date": datetime.datetime.now(),
-                                "tokens": total_tokens
+                                "tokens": total_tokens,
                             }
                         },
                     )
@@ -594,11 +593,10 @@ def reingest_source_worker(self, source_id, user):
                 logging.error(f"Error while processing file changes: {e}", exc_info=True)
                 raise
 
-
-
     except Exception as e:
         logging.error(f"Error in reingest_source_worker: {e}", exc_info=True)
         raise
+
 
 def remote_worker(
     self,
@@ -651,7 +649,7 @@ def remote_worker(
             "id": str(id),
             "type": loader,
             "remote_data": source_data,
-            "sync_frequency": sync_frequency
+            "sync_frequency": sync_frequency,
         }
 
         if operation_mode == "sync":
@@ -708,17 +706,10 @@ def sync_worker(self, frequency):
             source_data = doc.get("remote_data")
             retriever = doc.get("retriever")
             doc_id = str(doc.get("_id"))
-            resp = sync(
-                self, source_data, name, user, source_type, frequency, retriever, doc_id
-            )
+            resp = sync(self, source_data, name, user, source_type, frequency, retriever, doc_id)
             sync_counts["total_sync_count"] += 1
-            sync_counts[ 
-                "sync_success" if resp["status"] == "success" else "sync_failure"
-            ] += 1
-    return {
-        key: sync_counts[key]
-        for key in ["total_sync_count", "sync_success", "sync_failure"]
-    }
+            sync_counts["sync_success" if resp["status"] == "success" else "sync_failure"] += 1
+    return {key: sync_counts[key] for key in ["total_sync_count", "sync_success", "sync_failure"]}
 
 
 def attachment_worker(self, file_info, user):
@@ -739,9 +730,7 @@ def attachment_worker(self, file_info, user):
         self.update_state(state="PROGRESS", meta={"current": 10})
         storage = StorageCreator.get_storage()
 
-        self.update_state(
-            state="PROGRESS", meta={"current": 30, "status": "Processing content"}
-        )
+        self.update_state(state="PROGRESS", meta={"current": 30, "status": "Processing content"})
 
         content = storage.process_file(
             relative_path,
@@ -749,18 +738,15 @@ def attachment_worker(self, file_info, user):
                 input_files=[local_path], exclude_hidden=True, errors="ignore"
             )
             .load_data()[0]
-            .text, 
+            .text,
         )
-        
-        
+
         token_count = num_tokens_from_string(content)
         if token_count > 100000:
             content = content[:250000]
             token_count = num_tokens_from_string(content)
-        
-        self.update_state(
-            state="PROGRESS", meta={"current": 80, "status": "Storing in database"}
-        )
+
+        self.update_state(state="PROGRESS", meta={"current": 80, "status": "Storing in database"})
 
         mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
@@ -779,9 +765,7 @@ def attachment_worker(self, file_info, user):
             }
         )
 
-        logging.info(
-            f"Stored attachment with ID: {attachment_id}", extra={"user": user}
-        )
+        logging.info(f"Stored attachment with ID: {attachment_id}", extra={"user": user})
 
         self.update_state(state="PROGRESS", meta={"current": 100, "status": "Complete"})
 
@@ -836,9 +820,7 @@ def agent_webhook_worker(self, agent_id, payload):
         return {"status": "error", "error": str(e)}
     finally:
         self.update_state(state="PROGRESS", meta={"current": 100})
-        logging.info(
-            f"Webhook processed for agent {agent_id}", extra={"agent_id": agent_id}
-        )
+        logging.info(f"Webhook processed for agent {agent_id}", extra={"agent_id": agent_id})
         return {"status": "success", "result": result}
 
 
@@ -874,7 +856,7 @@ def ingest_connector(
     """
     logging.info(f"Starting remote ingestion from {source_type} for user: {user}, job: {job_name}")
     self.update_state(state="PROGRESS", meta={"current": 1})
-    
+
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
             # Step 1: Initialize the appropriate loader
@@ -884,24 +866,19 @@ def ingest_connector(
                 raise ValueError(f"{source_type} connector requires session_token")
 
             if not ConnectorCreator.is_supported(source_type):
-                raise ValueError(f"Unsupported connector type: {source_type}. Supported types: {ConnectorCreator.get_supported_connectors()}")
+                raise ValueError(
+                    f"Unsupported connector type: {source_type}. Supported types: {ConnectorCreator.get_supported_connectors()}"
+                )
 
             remote_loader = ConnectorCreator.create_connector(source_type, session_token)
 
             # Create a clean config for storage
-            api_source_config = {
-                "file_ids": file_ids or [],
-                "folder_ids": folder_ids or [],
-                "recursive": recursive
-            }
+            api_source_config = {"file_ids": file_ids or [], "folder_ids": folder_ids or [], "recursive": recursive}
 
             # Step 2: Download files to temp directory
             self.update_state(state="PROGRESS", meta={"current": 20, "status": "Downloading files"})
-            download_info = remote_loader.download_to_directory(
-                temp_dir,
-                api_source_config
-            )
-            
+            download_info = remote_loader.download_to_directory(temp_dir, api_source_config)
+
             if download_info.get("empty_result", False) or not download_info.get("files_downloaded", 0):
                 logging.warning(f"No files were downloaded from {source_type}")
                 # Create empty result directly instead of calling a separate method
@@ -913,28 +890,38 @@ def ingest_connector(
                     "source_config": api_source_config,
                     "directory_structure": "{}",
                 }
-            
+
             # Step 3: Use SimpleDirectoryReader to process downloaded files
             self.update_state(state="PROGRESS", meta={"current": 40, "status": "Processing files"})
             reader = SimpleDirectoryReader(
                 input_dir=temp_dir,
                 recursive=True,
                 required_exts=[
-                    ".rst", ".md", ".pdf", ".txt", ".docx", ".csv", ".epub",
-                    ".html", ".mdx", ".json", ".xlsx", ".pptx", ".png",
-                    ".jpg", ".jpeg",
+                    ".rst",
+                    ".md",
+                    ".pdf",
+                    ".txt",
+                    ".docx",
+                    ".csv",
+                    ".epub",
+                    ".html",
+                    ".mdx",
+                    ".json",
+                    ".xlsx",
+                    ".pptx",
+                    ".png",
+                    ".jpg",
+                    ".jpeg",
                 ],
                 exclude_hidden=True,
                 file_metadata=metadata_from_filename,
             )
             raw_docs = reader.load_data()
-            directory_structure = getattr(reader, 'directory_structure', {})
+            directory_structure = getattr(reader, "directory_structure", {})
 
-
-            
             # Step 4: Process documents (chunking, embedding, etc.)
             self.update_state(state="PROGRESS", meta={"current": 60, "status": "Processing documents"})
-            
+
             chunker = Chunker(
                 chunking_strategy="classic_chunk",
                 max_tokens=MAX_TOKENS,
@@ -942,17 +929,17 @@ def ingest_connector(
                 duplicate_headers=False,
             )
             raw_docs = chunker.chunk(documents=raw_docs)
-            
+
             # Preserve source information in document metadata
             for doc in raw_docs:
-                if hasattr(doc, 'extra_info') and doc.extra_info:
-                    source = doc.extra_info.get('source')
+                if hasattr(doc, "extra_info") and doc.extra_info:
+                    source = doc.extra_info.get("source")
                     if source and os.path.isabs(source):
                         # Convert absolute path to relative path
-                        doc.extra_info['source'] = os.path.relpath(source, start=temp_dir)
-            
+                        doc.extra_info["source"] = os.path.relpath(source, start=temp_dir)
+
             docs = [Document.to_langchain_format(raw_doc) for raw_doc in raw_docs]
-            
+
             if operation_mode == "upload":
                 id = ObjectId()
             elif operation_mode == "sync":
@@ -979,12 +966,9 @@ def ingest_connector(
                 "retriever": retriever,
                 "id": str(id),
                 "type": "connector:file",
-                "remote_data": json.dumps({
-                    "provider": source_type,
-                    **api_source_config
-                }),
+                "remote_data": json.dumps({"provider": source_type, **api_source_config}),
                 "directory_structure": json.dumps(directory_structure),
-                "sync_frequency": sync_frequency
+                "sync_frequency": sync_frequency,
             }
 
             if operation_mode == "sync":
@@ -1005,9 +989,9 @@ def ingest_connector(
                 "tokens": tokens,
                 "type": source_type,
                 "id": str(id),
-                "status": "complete"
+                "status": "complete",
             }
-            
+
         except Exception as e:
             logging.error(f"Error during remote ingestion: {e}", exc_info=True)
             raise

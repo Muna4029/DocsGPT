@@ -4,17 +4,13 @@ from typing import Optional
 
 from pydantic_settings import BaseSettings
 
-current_dir = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class Settings(BaseSettings):
     AUTH_TYPE: Optional[str] = None  # simple_jwt, session_jwt, or None
     LLM_PROVIDER: str = "docsgpt"
-    LLM_NAME: Optional[str] = (
-        None  # if LLM_PROVIDER is openai, LLM_NAME can be gpt-4 or gpt-3.5-turbo
-    )
+    LLM_NAME: Optional[str] = None  # if LLM_PROVIDER is openai, LLM_NAME can be gpt-4 or gpt-3.5-turbo
     EMBEDDINGS_NAME: str = "huggingface_sentence-transformers/all-mpnet-base-v2"
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
@@ -31,9 +27,7 @@ class Settings(BaseSettings):
     UPLOAD_FOLDER: str = "inputs"
     PARSE_PDF_AS_IMAGE: bool = False
     PARSE_IMAGE_REMOTE: bool = False
-    VECTOR_STORE: str = (
-        "faiss"  #  "faiss" or "elasticsearch" or "qdrant" or "milvus" or "lancedb"
-    )
+    VECTOR_STORE: str = "faiss"  #  "faiss" or "elasticsearch" or "qdrant" or "milvus" or "lancedb"
     RETRIEVERS_ENABLED: list = ["classic_rag"]
     AGENT_NAME: str = "classic"
     FALLBACK_LLM_PROVIDER: Optional[str] = None  # provider for fallback llm
@@ -41,11 +35,10 @@ class Settings(BaseSettings):
     FALLBACK_LLM_API_KEY: Optional[str] = None  # api key for fallback llm
 
     # Google Drive integration
-    GOOGLE_CLIENT_ID: Optional[str] = None # Replace with your actual Google OAuth client ID
-    GOOGLE_CLIENT_SECRET: Optional[str] = None# Replace with your actual Google OAuth client secret
-    CONNECTOR_REDIRECT_BASE_URI: Optional[str] = "http://127.0.0.1:7091/api/connectors/callback" 
+    GOOGLE_CLIENT_ID: Optional[str] = None  # Replace with your actual Google OAuth client ID
+    GOOGLE_CLIENT_SECRET: Optional[str] = None  # Replace with your actual Google OAuth client secret
+    CONNECTOR_REDIRECT_BASE_URI: Optional[str] = "http://127.0.0.1:7091/api/connectors/callback"
     ##append ?provider={provider_name} in your Provider console like http://127.0.0.1:7091/api/connectors/callback?provider=google_drive
-
 
     # LLM Cache
     CACHE_REDIS_URL: str = "redis://localhost:6379/2"
@@ -53,18 +46,12 @@ class Settings(BaseSettings):
     API_URL: str = "http://localhost:7091"  # backend url for celery worker
 
     API_KEY: Optional[str] = None  # LLM api key
-    EMBEDDINGS_KEY: Optional[str] = (
-        None  # api key for embeddings (if using openai, just copy API_KEY)
-    )
+    EMBEDDINGS_KEY: Optional[str] = None  # api key for embeddings (if using openai, just copy API_KEY)
     OPENAI_API_BASE: Optional[str] = None  # azure openai api base url
     OPENAI_API_VERSION: Optional[str] = None  # azure openai api version
     AZURE_DEPLOYMENT_NAME: Optional[str] = None  # azure deployment name for answering
-    AZURE_EMBEDDINGS_DEPLOYMENT_NAME: Optional[str] = (
-        None  # azure deployment name for embeddings
-    )
-    OPENAI_BASE_URL: Optional[str] = (
-        None  # openai base url for open ai compatable models
-    )
+    AZURE_EMBEDDINGS_DEPLOYMENT_NAME: Optional[str] = None  # azure deployment name for embeddings
+    OPENAI_BASE_URL: Optional[str] = None  # openai base url for open ai compatable models
 
     # elasticsearch
     ELASTIC_CLOUD_ID: Optional[str] = None  # cloud id for elasticsearch
@@ -106,9 +93,7 @@ class Settings(BaseSettings):
 
     # LanceDB vectorstore config
     LANCEDB_PATH: str = "/tmp/lancedb"  # Path where LanceDB stores its local data
-    LANCEDB_TABLE_NAME: Optional[str] = (
-        "docsgpts"  # Name of the table to use for storing vectors
-    )
+    LANCEDB_TABLE_NAME: Optional[str] = "docsgpts"  # Name of the table to use for storing vectors
 
     FLASK_DEBUG_MODE: bool = False
     STORAGE_TYPE: str = "local"  # local or s3

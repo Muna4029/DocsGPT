@@ -7,7 +7,6 @@ import requests
 from application.agents.tools.base import Tool
 from application.security.encryption import decrypt_credentials
 
-
 _mcp_session_cache = {}
 
 
@@ -36,9 +35,7 @@ class MCPTool(Tool):
 
         self.auth_credentials = {}
         if config.get("encrypted_credentials") and user_id:
-            self.auth_credentials = decrypt_credentials(
-                config["encrypted_credentials"], user_id
-            )
+            self.auth_credentials = decrypt_credentials(config["encrypted_credentials"], user_id)
         else:
             self.auth_credentials = config.get("auth_credentials", {})
         self.available_tools = []
@@ -151,9 +148,7 @@ class MCPTool(Tool):
             mcp_message["params"] = params
         return self._execute_mcp_request(mcp_message, method)
 
-    def _execute_mcp_request(
-        self, mcp_message: Dict, method: str, is_retry: bool = False
-    ) -> Dict:
+    def _execute_mcp_request(self, mcp_message: Dict, method: str, is_retry: bool = False) -> Dict:
         """Execute MCP request with optional retry on session failure."""
         try:
             final_headers = self._session.headers.copy()
@@ -254,11 +249,7 @@ class MCPTool(Tool):
             if isinstance(response, dict):
                 if "tools" in response:
                     self.available_tools = response["tools"]
-                elif (
-                    "result" in response
-                    and isinstance(response["result"], dict)
-                    and "tools" in response["result"]
-                ):
+                elif "result" in response and isinstance(response["result"], dict) and "tools" in response["result"]:
                     self.available_tools = response["result"]["tools"]
                 else:
                     self.available_tools = [response] if response else []
@@ -307,10 +298,7 @@ class MCPTool(Tool):
         actions = []
         for tool in self.available_tools:
             input_schema = (
-                tool.get("inputSchema")
-                or tool.get("input_schema")
-                or tool.get("schema")
-                or tool.get("parameters")
+                tool.get("inputSchema") or tool.get("input_schema") or tool.get("schema") or tool.get("parameters")
             )
 
             parameters_schema = {

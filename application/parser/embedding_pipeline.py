@@ -1,7 +1,9 @@
-import os
 import logging
+import os
+
 from retry import retry
 from tqdm import tqdm
+
 from application.core.settings import settings
 from application.vectorstore.vector_creator import VectorCreator
 
@@ -9,16 +11,16 @@ from application.vectorstore.vector_creator import VectorCreator
 def sanitize_content(content: str) -> str:
     """
     Remove NUL characters that can cause vector store ingestion to fail.
-    
+
     Args:
         content (str): Raw content that may contain NUL characters
-        
+
     Returns:
         str: Sanitized content with NUL characters removed
     """
     if not content:
         return content
-    return content.replace('\x00', '')
+    return content.replace("\x00", "")
 
 
 @retry(tries=10, delay=60)
@@ -33,7 +35,7 @@ def add_text_to_store_with_retry(store, doc, source_id):
     try:
         # Sanitize content to remove NUL characters that cause ingestion failures
         doc.page_content = sanitize_content(doc.page_content)
-        
+
         doc.metadata["source_id"] = str(source_id)
         store.add_texts([doc.page_content], metadatas=[doc.metadata])
     except Exception as e:
