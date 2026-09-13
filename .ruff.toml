@@ -1,2 +1,9 @@
 # Allow lines to be as long as 120 characters.
 line-length = 120
+
+# Exclude non-Python files from linting
+exclude = [
+    "setup.sh",
+    "setup.ps1",
+    "deployment/docker-compose-hub.yaml",
+]
