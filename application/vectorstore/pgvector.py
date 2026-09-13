@@ -100,7 +100,7 @@ class PGVectorStore(BaseVectorStore):
             cursor.execute(source_index_query)
             
             conn.commit()
-        except Exception as e:
+        except self._psycopg2.Error as e:
             conn.rollback()
             logging.error(f"Error creating table: {e}")
             raise
@@ -136,7 +136,7 @@ class PGVectorStore(BaseVectorStore):
             
             return documents
             
-        except Exception as e:
+        except self._psycopg2.Error as e:
             logging.error(f"Error searching documents: {e}", exc_info=True)
             return []
         finally:
@@ -178,7 +178,7 @@ class PGVectorStore(BaseVectorStore):
             conn.commit()
             return inserted_ids
             
-        except Exception as e:
+        except self._psycopg2.Error as e:
             conn.rollback()
             logging.error(f"Error adding texts: {e}")
             raise
@@ -195,7 +195,7 @@ class PGVectorStore(BaseVectorStore):
             cursor.execute(delete_query, (self._source_id,))
             conn.commit()
             
-        except Exception as e:
+        except self._psycopg2.Error as e:
             conn.rollback()
             logging.error(f"Error deleting index: {e}")
             raise
@@ -230,7 +230,7 @@ class PGVectorStore(BaseVectorStore):
             
             return chunks
             
-        except Exception as e:
+        except self._psycopg2.Error as e:
             logging.error(f"Error getting chunks: {e}")
             return []
         finally:
@@ -270,7 +270,7 @@ class PGVectorStore(BaseVectorStore):
             
             return str(inserted_id)
             
-        except Exception as e:
+        except self._psycopg2.Error as e:
             conn.rollback()
             logging.error(f"Error adding chunk: {e}")
             raise
@@ -290,7 +290,7 @@ class PGVectorStore(BaseVectorStore):
             
             return deleted_count > 0
             
-        except Exception as e:
+        except self._psycopg2.Error as e:
             conn.rollback()
             logging.error(f"Error deleting chunk: {e}")
             return False

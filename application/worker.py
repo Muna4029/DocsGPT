@@ -921,8 +921,8 @@ def agent_webhook_worker(self, agent_id, payload):
         logging.info(
             f"Webhook processed for agent {agent_id}", extra={"agent_id": agent_id}
         )
-        return {"status": "success", "result": result}
 
+    return {"status": "success", "result": result}
 
 def ingest_connector(
     self,
