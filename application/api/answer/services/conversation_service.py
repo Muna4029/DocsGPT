@@ -18,9 +18,7 @@ class ConversationService:
         self.conversations_collection = db["conversations"]
         self.agents_collection = db["agents"]
 
-    def get_conversation(
-        self, conversation_id: str, user_id: str
-    ) -> Optional[Dict[str, Any]]:
+    def get_conversation(self, conversation_id: str, user_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a conversation with proper access control"""
         if not conversation_id or not user_id:
             return None
@@ -33,9 +31,7 @@ class ConversationService:
             )
 
             if not conversation:
-                logger.warning(
-                    f"Conversation not found or unauthorized - ID: {conversation_id}, User: {user_id}"
-                )
+                logger.warning(f"Conversation not found or unauthorized - ID: {conversation_id}, User: {user_id}")
                 return None
             conversation["_id"] = str(conversation["_id"])
             return conversation
@@ -148,9 +144,7 @@ class ConversationService:
                 },
             ]
 
-            completion = llm.gen(
-                model=gpt_model, messages=messages_summary, max_tokens=30
-            )
+            completion = llm.gen(model=gpt_model, messages=messages_summary, max_tokens=30)
 
             conversation_data = {
                 "user": user_id,

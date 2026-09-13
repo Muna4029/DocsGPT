@@ -64,9 +64,7 @@ def get_prompt(prompt_id: str, prompts_collection=None) -> str:
 
 
 class StreamProcessor:
-    def __init__(
-        self, request_data: Dict[str, Any], decoded_token: Optional[Dict[str, Any]]
-    ):
+    def __init__(self, request_data: Dict[str, Any], decoded_token: Optional[Dict[str, Any]]):
         mongo = MongoDB.get_client()
         self.db = mongo[settings.MONGO_DB_NAME]
         self.agents_collection = self.db["agents"]
@@ -75,9 +73,7 @@ class StreamProcessor:
 
         self.data = request_data
         self.decoded_token = decoded_token
-        self.initial_user_id = (
-            self.decoded_token.get("sub") if self.decoded_token is not None else None
-        )
+        self.initial_user_id = self.decoded_token.get("sub") if self.decoded_token is not None else None
         self.conversation_id = self.data.get("conversation_id")
         self.source = {}
         self.all_sources = []
@@ -107,26 +103,19 @@ class StreamProcessor:
     def _load_conversation_history(self):
         """Load conversation history either from DB or request"""
         if self.conversation_id and self.initial_user_id:
-            conversation = self.conversation_service.get_conversation(
-                self.conversation_id, self.initial_user_id
-            )
+            conversation = self.conversation_service.get_conversation(self.conversation_id, self.initial_user_id)
             if not conversation:
                 raise ValueError("Conversation not found or unauthorized")
             self.history = [
-                {"prompt": query["prompt"], "response": query["response"]}
-                for query in conversation.get("queries", [])
+                {"prompt": query["prompt"], "response": query["response"]} for query in conversation.get("queries", [])
             ]
         else:
-            self.history = limit_chat_history(
-                json.loads(self.data.get("history", "[]")), gpt_model=self.model_id
-            )
+            self.history = limit_chat_history(json.loads(self.data.get("history", "[]")), gpt_model=self.model_id)
 
     def _process_attachments(self):
         """Process any attachments in the request"""
         attachment_ids = self.data.get("attachments", [])
-        self.attachments = self._get_attachments_content(
-            attachment_ids, self.initial_user_id
-        )
+        self.attachments = self._get_attachments_content(attachment_ids, self.initial_user_id)
 
     def _get_attachments_content(self, attachment_ids, user_id):
         """
@@ -137,16 +126,12 @@ class StreamProcessor:
         attachments = []
         for attachment_id in attachment_ids:
             try:
-                attachment_doc = self.attachments_collection.find_one(
-                    {"_id": ObjectId(attachment_id), "user": user_id}
-                )
+                attachment_doc = self.attachments_collection.find_one({"_id": ObjectId(attachment_id), "user": user_id})
 
                 if attachment_doc:
                     attachments.append(attachment_doc)
             except Exception as e:
-                logger.error(
-                    f"Error retrieving attachment {attachment_id}: {e}", exc_info=True
-                )
+                logger.error(f"Error retrieving attachment {attachment_id}: {e}", exc_info=True)
         return attachments
 
     def _validate_and_set_model(self):
@@ -170,20 +155,14 @@ class StreamProcessor:
             if agent is None:
                 raise Exception("Agent not found")
             is_owner = agent.get("user") == user_id
-            is_shared_with_user = agent.get(
-                "shared_publicly", False
-            ) or user_id in agent.get("shared_with", [])
+            is_shared_with_user = agent.get("shared_publicly", False) or user_id in agent.get("shared_with", [])
 
             if not (is_owner or is_shared_with_user):
                 raise Exception("Unauthorized access to the agent")
             if is_owner:
                 self.agents_collection.update_one(
                     {"_id": ObjectId(agent_id)},
-                    {
-                        "$set": {
-                            "lastUsedAt": datetime.datetime.now(datetime.timezone.utc)
-                        }
-                    },
+                    {"$set": {"lastUsedAt": datetime.datetime.now(datetime.timezone.utc)}},
                 )
             return str(agent["key"]), not is_owner, agent.get("shared_token")
         except Exception as e:
@@ -242,9 +221,7 @@ class StreamProcessor:
             agent_data = self._get_data_from_api_key(api_key)
 
             if agent_data.get("sources") and len(agent_data["sources"]) > 0:
-                source_ids = [
-                    source["id"] for source in agent_data["sources"] if source.get("id")
-                ]
+                source_ids = [source["id"] for source in agent_data["sources"] if source.get("id")]
                 if source_ids:
                     self.source = {"active_docs": source_ids}
                 else:
@@ -271,9 +248,7 @@ class StreamProcessor:
     def _configure_agent(self):
         """Configure the agent based on request data"""
         agent_id = self.data.get("agent_id")
-        self.agent_key, self.is_shared_usage, self.shared_token = self._get_agent_key(
-            agent_id, self.initial_user_id
-        )
+        self.agent_key, self.is_shared_usage, self.shared_token = self._get_agent_key(agent_id, self.initial_user_id)
 
         api_key = self.data.get("api_key")
         if api_key:
@@ -296,9 +271,7 @@ class StreamProcessor:
                 try:
                     self.retriever_config["chunks"] = int(data_key["chunks"])
                 except (ValueError, TypeError):
-                    logger.warning(
-                        f"Invalid chunks value: {data_key['chunks']}, using default value 2"
-                    )
+                    logger.warning(f"Invalid chunks value: {data_key['chunks']}, using default value 2")
                     self.retriever_config["chunks"] = 2
         elif self.agent_key:
             data_key = self._get_data_from_api_key(self.agent_key)
@@ -310,11 +283,7 @@ class StreamProcessor:
                     "json_schema": data_key.get("json_schema"),
                 }
             )
-            self.decoded_token = (
-                self.decoded_token
-                if self.is_shared_usage
-                else {"sub": data_key.get("user")}
-            )
+            self.decoded_token = self.decoded_token if self.is_shared_usage else {"sub": data_key.get("user")}
             if data_key.get("source"):
                 self.source = {"active_docs": data_key["source"]}
             if data_key.get("retriever"):
@@ -323,9 +292,7 @@ class StreamProcessor:
                 try:
                     self.retriever_config["chunks"] = int(data_key["chunks"])
                 except (ValueError, TypeError):
-                    logger.warning(
-                        f"Invalid chunks value: {data_key['chunks']}, using default value 2"
-                    )
+                    logger.warning(f"Invalid chunks value: {data_key['chunks']}, using default value 2")
                     self.retriever_config["chunks"] = 2
         else:
             self.agent_config.update(
@@ -339,9 +306,7 @@ class StreamProcessor:
 
     def _configure_retriever(self):
         history_token_limit = int(self.data.get("token_limit", 2000))
-        doc_token_limit = calculate_doc_token_budget(
-            gpt_model=self.model_id, history_token_limit=history_token_limit
-        )
+        doc_token_limit = calculate_doc_token_budget(gpt_model=self.model_id, history_token_limit=history_token_limit)
 
         self.retriever_config = {
             "retriever_name": self.data.get("retriever", "classic"),
@@ -410,9 +375,7 @@ class StreamProcessor:
         2. Per-request: disable_tool_prefetch in request data
         """
         if not settings.ENABLE_TOOL_PREFETCH:
-            logger.info(
-                "Tool pre-fetching disabled globally via ENABLE_TOOL_PREFETCH setting"
-            )
+            logger.info("Tool pre-fetching disabled globally via ENABLE_TOOL_PREFETCH setting")
             return None
 
         if self.data.get("disable_tool_prefetch", False):
@@ -426,9 +389,7 @@ class StreamProcessor:
             user_tools_collection = self.db["user_tools"]
             user_id = self.initial_user_id or "local"
 
-            user_tools = list(
-                user_tools_collection.find({"user": user_id, "status": True})
-            )
+            user_tools = list(user_tools_collection.find({"user": user_id, "status": True}))
 
             if not user_tools:
                 return None
@@ -440,9 +401,7 @@ class StreamProcessor:
                 tool_id = str(tool_doc.get("_id"))
 
                 if filtering_enabled:
-                    required_actions_by_name = required_tool_actions.get(
-                        tool_name, set()
-                    )
+                    required_actions_by_name = required_tool_actions.get(tool_name, set())
                     required_actions_by_id = required_tool_actions.get(tool_id, set())
 
                     required_actions = required_actions_by_name | required_actions_by_id
@@ -490,13 +449,9 @@ class StreamProcessor:
 
             saved_actions = tool_doc.get("actions", [])
 
-            include_all_actions = required_actions is None or (
-                required_actions and None in required_actions
-            )
+            include_all_actions = required_actions is None or (required_actions and None in required_actions)
             allowed_actions: Set[str] = (
-                {action for action in required_actions if isinstance(action, str)}
-                if required_actions
-                else set()
+                {action for action in required_actions if isinstance(action, str)} if required_actions else set()
             )
 
             action_results = {}
@@ -504,11 +459,7 @@ class StreamProcessor:
                 action_name = action_meta.get("name")
                 if action_name is None:
                     continue
-                if (
-                    not include_all_actions
-                    and allowed_actions
-                    and action_name not in allowed_actions
-                ):
+                if not include_all_actions and allowed_actions and action_name not in allowed_actions:
                     continue
 
                 try:
@@ -524,9 +475,7 @@ class StreamProcessor:
                     kwargs = {}
                     for param_name, param_spec in properties.items():
                         if saved_action:
-                            saved_props = saved_action.get("parameters", {}).get(
-                                "properties", {}
-                            )
+                            saved_props = saved_action.get("parameters", {}).get("properties", {})
                             if param_name in saved_props:
                                 param_value = saved_props[param_name].get("value")
                                 if param_value is not None:
@@ -541,9 +490,7 @@ class StreamProcessor:
                     result = tool.execute_action(action_name, **kwargs)
                     action_results[action_name] = result
                 except Exception as e:
-                    logger.debug(
-                        f"Action '{action_name}' execution failed: {type(e).__name__}"
-                    )
+                    logger.debug(f"Action '{action_name}' execution failed: {type(e).__name__}")
                     continue
 
             return action_results if action_results else None
@@ -556,11 +503,7 @@ class StreamProcessor:
         """Retrieve and cache the raw prompt content for the current agent configuration."""
         if self._prompt_content is not None:
             return self._prompt_content
-        prompt_id = (
-            self.agent_config.get("prompt_id")
-            if isinstance(self.agent_config, dict)
-            else None
-        )
+        prompt_id = self.agent_config.get("prompt_id") if isinstance(self.agent_config, dict) else None
         if not prompt_id:
             return None
         try:
@@ -598,9 +541,7 @@ class StreamProcessor:
             self._required_tool_actions = {}
             return self._required_tool_actions
 
-    def _fetch_memory_tool_data(
-        self, tool_doc: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _fetch_memory_tool_data(self, tool_doc: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Fetch memory tool data for pre-injection into prompt"""
         try:
             tool_config = tool_doc.get("config", {}).copy()
@@ -629,9 +570,7 @@ class StreamProcessor:
         """Create and return the configured agent with rendered prompt"""
         raw_prompt = self._get_prompt_content()
         if raw_prompt is None:
-            raw_prompt = get_prompt(
-                self.agent_config["prompt_id"], self.prompts_collection
-            )
+            raw_prompt = get_prompt(self.agent_config["prompt_id"], self.prompts_collection)
             self._prompt_content = raw_prompt
 
         rendered_prompt = self.prompt_renderer.render_prompt(
@@ -644,11 +583,7 @@ class StreamProcessor:
             tools_data=tools_data,
         )
 
-        provider = (
-            get_provider_from_model_id(self.model_id)
-            if self.model_id
-            else settings.LLM_PROVIDER
-        )
+        provider = get_provider_from_model_id(self.model_id) if self.model_id else settings.LLM_PROVIDER
         system_api_key = get_api_key_for_provider(provider or settings.LLM_PROVIDER)
 
         return AgentCreator.create_agent(
