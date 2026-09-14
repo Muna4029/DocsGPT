@@ -148,6 +148,7 @@ class BaseAnswerResource:
         conversation_id: Optional[str],
         user_api_key: Optional[str],
         decoded_token: Dict[str, Any],
+        retriever: Any = None,
         isNoneDoc: bool = False,
         index: Optional[int] = None,
         should_save_conversation: bool = True,
