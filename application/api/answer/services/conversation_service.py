@@ -52,8 +52,9 @@ class ConversationService:
         sources: List[Dict[str, Any]],
         tool_calls: List[Dict[str, Any]],
         llm: Any,
-        model_id: str,
-        decoded_token: Dict[str, Any],
+        model_id: Optional[str] = None,
+        gpt_model: Optional[str] = None,
+        decoded_token: Optional[Dict[str, Any]] = None,
         index: Optional[int] = None,
         api_key: Optional[str] = None,
         agent_id: Optional[str] = None,
@@ -62,6 +63,13 @@ class ConversationService:
         attachment_ids: Optional[List[str]] = None,
     ) -> str:
         """Save or update a conversation in the database"""
+        # Use gpt_model as model_id if model_id not provided
+        if not model_id:
+            model_id = gpt_model
+        if not model_id:
+            raise ValueError("Model ID is required")
+        if decoded_token is None:
+            decoded_token = {}
         user_id = decoded_token.get("sub")
         if not user_id:
             raise ValueError("User ID not found in token")

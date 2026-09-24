@@ -16,7 +16,7 @@ from application.core.model_utils import (
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
 from application.llm.llm_creator import LLMCreator
-from application.utils import check_required_fields
+from application.utils import check_required_fields, get_gpt_model
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ class BaseAnswerResource:
         self.user_logs_collection = db["user_logs"]
         self.default_model_id = get_default_model_id()
         self.conversation_service = ConversationService()
+        self.gpt_model = get_gpt_model()
 
     def validate_request(
         self, data: Dict[str, Any], require_conversation_id: bool = False
