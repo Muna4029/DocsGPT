@@ -1,7 +1,7 @@
 """Base schema for data structures."""
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from dataclasses_json import DataClassJsonMixin
 
@@ -16,12 +16,12 @@ class BaseDocument(DataClassJsonMixin):
     """
 
     # TODO: consolidate fields from Document/IndexStruct into base class
-    text: Optional[str] = None
-    doc_id: Optional[str] = None
-    embedding: Optional[List[float]] = None
+    text: str | None = None
+    doc_id: str | None = None
+    embedding: list[float] | None = None
 
     # extra fields
-    extra_info: Optional[Dict[str, Any]] = None
+    extra_info: dict[str, Any] | None = None
 
     @classmethod
     @abstractmethod
@@ -45,7 +45,7 @@ class BaseDocument(DataClassJsonMixin):
         """Check if doc_id is None."""
         return self.doc_id is None
 
-    def get_embedding(self) -> List[float]:
+    def get_embedding(self) -> list[float]:
         """Get embedding.
 
         Errors if embedding is None.
@@ -56,9 +56,9 @@ class BaseDocument(DataClassJsonMixin):
         return self.embedding
 
     @property
-    def extra_info_str(self) -> Optional[str]:
+    def extra_info_str(self) -> str | None:
         """Extra info string."""
         if self.extra_info is None:
             return None
 
-        return "\n".join([f"{k}: {str(v)}" for k, v in self.extra_info.items()])
+        return "\n".join([f"{k}: {v!s}" for k, v in self.extra_info.items()])

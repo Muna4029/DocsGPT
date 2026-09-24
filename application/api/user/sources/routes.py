@@ -5,7 +5,7 @@ import math
 
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, redirect, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.api import api
 from application.api.user.base import sources_collection
@@ -13,7 +13,6 @@ from application.core.settings import settings
 from application.storage.storage_creator import StorageCreator
 from application.utils import check_required_fields
 from application.vectorstore.vector_creator import VectorCreator
-
 
 sources_ns = Namespace(
     "sources", description="Source document management operations", path="/api"
@@ -182,7 +181,7 @@ class DeleteOldIndexes(Resource):
             # Delete vector index
 
             if settings.VECTOR_STORE == "faiss":
-                index_path = f"indexes/{str(doc['_id'])}"
+                index_path = f"indexes/{doc['_id']!s}"
                 if storage.file_exists(f"{index_path}/index.faiss"):
                     storage.delete_file(f"{index_path}/index.faiss")
                 if storage.file_exists(f"{index_path}/index.pkl"):
@@ -192,7 +191,7 @@ class DeleteOldIndexes(Resource):
                     settings.VECTOR_STORE, source_id=str(doc["_id"])
                 )
                 vectorstore.delete_index()
-            if "file_path" in doc and doc["file_path"]:
+            if doc.get("file_path"):
                 file_path = doc["file_path"]
                 if storage.is_directory(file_path):
                     files = storage.list_files(file_path)

@@ -11,7 +11,6 @@ from application.api.user.base import agents_collection, require_agent
 from application.api.user.tasks import process_agent_webhook
 from application.core.settings import settings
 
-
 agents_webhooks_ns = Namespace(
     "agents", description="Agent management operations", path="/api"
 )

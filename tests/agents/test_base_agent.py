@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+
 from application.agents.classic_agent import ClassicAgent
 from application.core.settings import settings
 

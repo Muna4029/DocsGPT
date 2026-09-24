@@ -4,7 +4,7 @@ import os
 
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.api import api
 from application.api.user.base import agents_collection, storage
@@ -12,7 +12,6 @@ from application.api.user.tasks import store_attachment
 from application.core.settings import settings
 from application.tts.google_tts import GoogleTTS
 from application.utils import safe_filename
-
 
 attachments_ns = Namespace(
     "attachments", description="File attachments and media operations", path="/api"
@@ -62,7 +61,7 @@ class StoreAttachment(Resource):
         try:
             attachment_id = ObjectId()
             original_filename = safe_filename(os.path.basename(file.filename))
-            relative_path = f"{settings.UPLOAD_FOLDER}/{user}/attachments/{str(attachment_id)}/{original_filename}"
+            relative_path = f"{settings.UPLOAD_FOLDER}/{user}/attachments/{attachment_id!s}/{original_filename}"
 
             metadata = storage.save_file(file, relative_path)
 

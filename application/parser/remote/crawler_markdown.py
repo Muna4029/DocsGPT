@@ -1,11 +1,14 @@
-import requests
-from urllib.parse import urlparse, urljoin
-from bs4 import BeautifulSoup
-from application.parser.remote.base import BaseRemote
 import re
-from markdownify import markdownify
-from application.parser.schema.base import Document
+from urllib.parse import urljoin, urlparse
+
+import requests
 import tldextract
+from bs4 import BeautifulSoup
+from markdownify import markdownify
+
+from application.parser.remote.base import BaseRemote
+from application.parser.schema.base import Document
+
 
 class CrawlerLoader(BaseRemote):
     def __init__(self, limit=10, allow_subdomains=False):

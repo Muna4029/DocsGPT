@@ -1,5 +1,6 @@
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from application.parser.remote.reddit_loader import RedditPostsLoaderRemote

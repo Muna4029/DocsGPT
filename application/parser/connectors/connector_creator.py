@@ -1,5 +1,5 @@
-from application.parser.connectors.google_drive.loader import GoogleDriveLoader
 from application.parser.connectors.google_drive.auth import GoogleDriveAuth
+from application.parser.connectors.google_drive.loader import GoogleDriveLoader
 
 
 class ConnectorCreator:

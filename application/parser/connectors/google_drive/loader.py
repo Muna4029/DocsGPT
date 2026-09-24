@@ -6,10 +6,10 @@ Loads documents from Google Drive using Google Drive API.
 import io
 import logging
 import os
-from typing import List, Dict, Any, Optional
+from typing import Any
 
-from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaIoBaseDownload
 
 from application.parser.connectors.base import BaseConnectorLoader
 from application.parser.connectors.google_drive.auth import GoogleDriveAuth
@@ -65,7 +65,7 @@ class GoogleDriveLoader(BaseConnectorLoader):
 
 
 
-    def _process_file(self, file_metadata: Dict[str, Any], load_content: bool = True) -> Optional[Document]:
+    def _process_file(self, file_metadata: dict[str, Any], load_content: bool = True) -> Document | None:
         try:
             file_id = file_metadata.get('id')
             file_name = file_metadata.get('name', 'Unknown')
@@ -109,14 +109,14 @@ class GoogleDriveLoader(BaseConnectorLoader):
             logging.error(f"Error processing file: {e}")
             return None
 
-    def load_data(self, inputs: Dict[str, Any]) -> List[Document]:
+    def load_data(self, inputs: dict[str, Any]) -> list[Document]:
         session_token = inputs.get('session_token')
         if session_token and session_token != self.session_token:
             logging.warning("Session token in inputs differs from loader's session token. Using loader's session token.")
         self.config = inputs
 
         try:
-            documents: List[Document] = []
+            documents: list[Document] = []
 
             folder_id = inputs.get('folder_id')
             file_ids = inputs.get('file_ids', [])
@@ -169,7 +169,7 @@ class GoogleDriveLoader(BaseConnectorLoader):
 
 
 
-    def _load_file_by_id(self, file_id: str, load_content: bool = True) -> Optional[Document]:
+    def _load_file_by_id(self, file_id: str, load_content: bool = True) -> Document | None:
         self._ensure_service()
 
         try:
@@ -201,10 +201,10 @@ class GoogleDriveLoader(BaseConnectorLoader):
             return None
 
 
-    def _list_items_in_parent(self, parent_id: str, limit: int = 100, load_content: bool = False, page_token: Optional[str] = None, search_query: Optional[str] = None) -> List[Document]:
+    def _list_items_in_parent(self, parent_id: str, limit: int = 100, load_content: bool = False, page_token: str | None = None, search_query: str | None = None) -> list[Document]:
         self._ensure_service()
 
-        documents: List[Document] = []
+        documents: list[Document] = []
 
         try:
             query = f"'{parent_id}' in parents and trashed=false"
@@ -213,7 +213,7 @@ class GoogleDriveLoader(BaseConnectorLoader):
                 safe_search = search_query.replace("'", "\\'")
                 query += f" and name contains '{safe_search}'"
 
-            next_token_out: Optional[str] = None
+            next_token_out: str | None = None
 
             while True:
                 page_size = 100
@@ -269,7 +269,7 @@ class GoogleDriveLoader(BaseConnectorLoader):
 
 
 
-    def _download_file_content(self, file_id: str, mime_type: str) -> Optional[str]:
+    def _download_file_content(self, file_id: str, mime_type: str) -> str | None:
         if not self.credentials.token:
             logging.warning("No access token in credentials, attempting to refresh")
             if hasattr(self.credentials, 'refresh_token') and self.credentials.refresh_token:

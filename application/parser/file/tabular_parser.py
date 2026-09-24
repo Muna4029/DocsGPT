@@ -4,7 +4,7 @@ Contains parsers for tabular data files.
 
 """
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from application.parser.file.base_parser import BaseParser
 
@@ -24,11 +24,11 @@ class CSVParser(BaseParser):
         super().__init__(*args, **kwargs)
         self._concat_rows = concat_rows
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 
-    def parse_file(self, file: Path, errors: str = "ignore") -> Union[str, List[str]]:
+    def parse_file(self, file: Path, errors: str = "ignore") -> str | list[str]:
         """Parse file.
 
         Returns:
@@ -102,11 +102,11 @@ class PandasCSVParser(BaseParser):
         self._header_period = header_period
         self._header_prefix = header_prefix
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 
-    def parse_file(self, file: Path, errors: str = "ignore") -> Union[str, List[str]]:
+    def parse_file(self, file: Path, errors: str = "ignore") -> str | list[str]:
         """Parse file."""
         try:
             import pandas as pd
@@ -188,11 +188,11 @@ class ExcelParser(BaseParser):
         self._header_period = header_period
         self._header_prefix = header_prefix
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 
-    def parse_file(self, file: Path, errors: str = "ignore") -> Union[str, List[str]]:
+    def parse_file(self, file: Path, errors: str = "ignore") -> str | list[str]:
         """Parse file."""
         try:
             import pandas as pd

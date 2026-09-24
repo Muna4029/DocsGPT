@@ -1,13 +1,11 @@
 import logging
 import traceback
 
-from flask import request, Response
-from flask_restx import fields, Resource
+from flask import Response, request
+from flask_restx import Resource, fields
 
 from application.api import api
-
-from application.api.answer.routes.base import answer_ns, BaseAnswerResource
-
+from application.api.answer.routes.base import BaseAnswerResource, answer_ns
 from application.api.answer.services.stream_processor import StreamProcessor
 
 logger = logging.getLogger(__name__)
@@ -100,7 +98,7 @@ class StreamResource(Resource, BaseAnswerResource):
         except ValueError as e:
             message = "Malformed request body"
             logger.error(
-                f"/stream - error: {message} - specific error: {str(e)} - traceback: {traceback.format_exc()}",
+                f"/stream - error: {message} - specific error: {e!s} - traceback: {traceback.format_exc()}",
                 extra={"error": str(e), "traceback": traceback.format_exc()},
             )
             return Response(
@@ -110,7 +108,7 @@ class StreamResource(Resource, BaseAnswerResource):
             )
         except Exception as e:
             logger.error(
-                f"/stream - error: {str(e)} - traceback: {traceback.format_exc()}",
+                f"/stream - error: {e!s} - traceback: {traceback.format_exc()}",
                 extra={"error": str(e), "traceback": traceback.format_exc()},
             )
             return Response(

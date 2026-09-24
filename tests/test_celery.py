@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+
 from application.celery_init import make_celery
 from application.core.settings import settings
 

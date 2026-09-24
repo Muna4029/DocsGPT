@@ -1,13 +1,14 @@
 import logging
-from application.vectorstore.base import BaseVectorStore
+
 from application.core.settings import settings
+from application.vectorstore.base import BaseVectorStore
 from application.vectorstore.document_class import Document
 
 
 class QdrantStore(BaseVectorStore):
     def __init__(self, source_id: str = "", embeddings_key: str = "embeddings"):
-        from qdrant_client import models
         from langchain_community.vectorstores.qdrant import Qdrant
+        from qdrant_client import models
 
         # Store the source_id for use in add_chunk
         self._source_id = str(source_id).replace("application/indexes/", "").rstrip("/")

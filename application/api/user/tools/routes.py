@@ -2,7 +2,7 @@
 
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.agents.tools.tool_manager import ToolManager
 from application.api import api
@@ -222,21 +222,21 @@ class UpdateTool(Resource):
                     auth_credentials = existing_credentials.copy()
                     auth_type = storage_config.get("auth_type", "none")
                     if auth_type == "api_key":
-                        if "api_key" in config and config["api_key"]:
+                        if config.get("api_key"):
                             auth_credentials["api_key"] = config["api_key"]
                         if "api_key_header" in config:
                             auth_credentials["api_key_header"] = config[
                                 "api_key_header"
                             ]
                     elif auth_type == "bearer":
-                        if "bearer_token" in config and config["bearer_token"]:
+                        if config.get("bearer_token"):
                             auth_credentials["bearer_token"] = config["bearer_token"]
-                        elif "encrypted_token" in config and config["encrypted_token"]:
+                        elif config.get("encrypted_token"):
                             auth_credentials["bearer_token"] = config["encrypted_token"]
                     elif auth_type == "basic":
-                        if "username" in config and config["username"]:
+                        if config.get("username"):
                             auth_credentials["username"] = config["username"]
-                        if "password" in config and config["password"]:
+                        if config.get("password"):
                             auth_credentials["password"] = config["password"]
                     if auth_type != "none" and auth_credentials:
                         encrypted_credentials_string = encrypt_credentials(

@@ -113,11 +113,12 @@ class TestConversationServiceSave:
             )
 
     def test_truncates_long_source_text(self, mock_mongo_db):
+        from bson import ObjectId
+
         from application.api.answer.services.conversation_service import (
             ConversationService,
         )
         from application.core.settings import settings
-        from bson import ObjectId
 
         service = ConversationService()
         collection = mock_mongo_db[settings.MONGO_DB_NAME]["conversations"]
@@ -147,11 +148,12 @@ class TestConversationServiceSave:
         assert saved_source_text == "x" * 1000
 
     def test_creates_new_conversation_with_summary(self, mock_mongo_db):
+        from bson import ObjectId
+
         from application.api.answer.services.conversation_service import (
             ConversationService,
         )
         from application.core.settings import settings
-        from bson import ObjectId
 
         service = ConversationService()
         collection = mock_mongo_db[settings.MONGO_DB_NAME]["conversations"]
@@ -179,11 +181,12 @@ class TestConversationServiceSave:
         assert saved_conv["queries"][0]["prompt"] == "What is Python?"
 
     def test_appends_to_existing_conversation(self, mock_mongo_db):
+        from bson import ObjectId
+
         from application.api.answer.services.conversation_service import (
             ConversationService,
         )
         from application.core.settings import settings
-        from bson import ObjectId
 
         service = ConversationService()
         collection = mock_mongo_db[settings.MONGO_DB_NAME]["conversations"]

@@ -1,6 +1,6 @@
-import re
-from typing import List, Tuple
 import logging
+import re
+
 from application.parser.schema.base import Document
 from application.utils import get_encoding
 
@@ -22,7 +22,7 @@ class Chunker:
         self.duplicate_headers = duplicate_headers
         self.encoding = get_encoding()
 
-    def separate_header_and_body(self, text: str) -> Tuple[str, str]:
+    def separate_header_and_body(self, text: str) -> tuple[str, str]:
         header_pattern = r"^(.*?\n){3}"
         match = re.match(header_pattern, text)
         if match:
@@ -34,7 +34,7 @@ class Chunker:
 
 
     
-    def split_document(self, doc: Document) -> List[Document]:
+    def split_document(self, doc: Document) -> list[Document]:
         split_docs = []
         header, body = self.separate_header_and_body(doc.text)
         header_tokens = self.encoding.encode(header) if header else []
@@ -59,7 +59,7 @@ class Chunker:
             header_tokens = []
         return split_docs
 
-    def classic_chunk(self, documents: List[Document]) -> List[Document]:
+    def classic_chunk(self, documents: list[Document]) -> list[Document]:
         processed_docs = []
         i = 0
         while i < len(documents):
@@ -67,13 +67,7 @@ class Chunker:
             tokens = self.encoding.encode(doc.text)
             token_count = len(tokens)
 
-            if self.min_tokens <= token_count <= self.max_tokens:
-                doc.extra_info = doc.extra_info or {}
-                doc.extra_info["token_count"] = token_count
-                processed_docs.append(doc)
-                i += 1
-            elif token_count < self.min_tokens:
-  
+            if self.min_tokens <= token_count <= self.max_tokens or token_count < self.min_tokens:
                 doc.extra_info = doc.extra_info or {}
                 doc.extra_info["token_count"] = token_count
                 processed_docs.append(doc)
@@ -86,8 +80,8 @@ class Chunker:
 
     def chunk(
         self,
-        documents: List[Document]
-    ) -> List[Document]:
+        documents: list[Document]
+    ) -> list[Document]:
         if self.chunking_strategy == "classic_chunk":
             return self.classic_chunk(documents)
         else:

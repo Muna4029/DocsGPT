@@ -5,7 +5,6 @@ from google import genai
 from google.genai import types
 
 from application.core.settings import settings
-
 from application.llm.base import BaseLLM
 from application.storage.storage_creator import StorageCreator
 
@@ -149,9 +148,7 @@ class GoogleLLM(BaseLLM):
             role = message.get("role")
             content = message.get("content")
 
-            if role == "assistant":
-                role = "model"
-            elif role == "tool":
+            if role == "assistant" or role == "tool":
                 role = "model"
 
             parts = []

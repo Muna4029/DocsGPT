@@ -1,11 +1,13 @@
 import base64
-import requests
+import mimetypes
 import time
-from typing import List, Optional
+
+import requests
+
+from application.core.settings import settings
 from application.parser.remote.base import BaseRemote
 from application.parser.schema.base import Document
-import mimetypes
-from application.core.settings import settings
+
 
 class GitHubLoader(BaseRemote):
     def __init__(self):
@@ -16,7 +18,6 @@ class GitHubLoader(BaseRemote):
         } if self.access_token else {
             "Accept": "application/vnd.github.v3+json"
         }
-        return
 
     def is_text_file(self, file_path: str) -> bool:
         """Determine if a file is a text file based on extension."""
@@ -46,7 +47,7 @@ class GitHubLoader(BaseRemote):
 
         return False
 
-    def fetch_file_content(self, repo_url: str, file_path: str) -> Optional[str]:
+    def fetch_file_content(self, repo_url: str, file_path: str) -> str | None:
         """Fetch file content. Returns None if file should be skipped (binary files or empty files)."""
         url = f"https://api.github.com/repos/{repo_url}/contents/{file_path}"
         response = self._make_request(url)
@@ -116,7 +117,7 @@ class GitHubLoader(BaseRemote):
 
         return response
 
-    def fetch_repo_files(self, repo_url: str, path: str = "") -> List[str]:
+    def fetch_repo_files(self, repo_url: str, path: str = "") -> list[str]:
         url = f"https://api.github.com/repos/{repo_url}/contents/{path}"
         response = self._make_request(url)
 
@@ -138,7 +139,7 @@ class GitHubLoader(BaseRemote):
                 files.extend(self.fetch_repo_files(repo_url, item["path"]))
         return files
 
-    def load_data(self, repo_url: str) -> List[Document]:
+    def load_data(self, repo_url: str) -> list[Document]:
         repo_name = repo_url.split("github.com/")[-1]
         files = self.fetch_repo_files(repo_name)
         documents = []

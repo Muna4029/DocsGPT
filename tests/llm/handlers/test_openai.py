@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
+from application.llm.handlers.base import LLMResponse, ToolCall
 from application.llm.handlers.openai import OpenAILLMHandler
-from application.llm.handlers.base import ToolCall, LLMResponse
 
 
 class TestOpenAILLMHandler:

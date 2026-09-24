@@ -1,10 +1,11 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from urllib.parse import urlparse
+
+import pytest
+from langchain.docstore.document import Document as LCDocument
 
 from application.parser.remote.web_loader import WebLoader, headers
 from application.parser.schema.base import Document
-from langchain.docstore.document import Document as LCDocument
 
 
 @pytest.fixture

@@ -6,10 +6,9 @@ import secrets
 from bson import DBRef
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.api import api
-from application.core.settings import settings
 from application.api.user.base import (
     agents_collection,
     db,
@@ -18,6 +17,7 @@ from application.api.user.base import (
     user_tools_collection,
     users_collection,
 )
+from application.core.settings import settings
 from application.utils import generate_image_url
 
 agents_sharing_ns = Namespace(

@@ -4,7 +4,7 @@ import datetime
 
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.api import api
 from application.api.user.base import (

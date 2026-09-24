@@ -1,7 +1,9 @@
 import types
+
 import pytest
 
 from application.llm.google_ai import GoogleLLM
+
 
 class _FakePart:
     def __init__(self, text=None, function_call=None, file_data=None):

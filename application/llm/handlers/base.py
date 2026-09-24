@@ -1,7 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any
 
 from application.logging import build_stack_data
 
@@ -14,11 +15,11 @@ class ToolCall:
 
     id: str
     name: str
-    arguments: Union[str, Dict]
-    index: Optional[int] = None
+    arguments: str | dict
+    index: int | None = None
 
     @classmethod
-    def from_dict(cls, data: Dict) -> "ToolCall":
+    def from_dict(cls, data: dict) -> "ToolCall":
         """Create ToolCall from dictionary."""
         return cls(
             id=data.get("id", ""),
@@ -33,7 +34,7 @@ class LLMResponse:
     """Represents a response from the LLM."""
 
     content: str
-    tool_calls: List[ToolCall]
+    tool_calls: list[ToolCall]
     finish_reason: str
     raw_response: Any
 
@@ -53,27 +54,24 @@ class LLMHandler(ABC):
     @abstractmethod
     def parse_response(self, response: Any) -> LLMResponse:
         """Parse raw LLM response into standardized format."""
-        pass
 
     @abstractmethod
-    def create_tool_message(self, tool_call: ToolCall, result: Any) -> Dict:
+    def create_tool_message(self, tool_call: ToolCall, result: Any) -> dict:
         """Create a tool result message for the conversation history."""
-        pass
 
     @abstractmethod
     def _iterate_stream(self, response: Any) -> Generator:
         """Iterate through streaming response chunks."""
-        pass
 
     def process_message_flow(
         self,
         agent,
         initial_response,
-        tools_dict: Dict,
-        messages: List[Dict],
-        attachments: Optional[List] = None,
+        tools_dict: dict,
+        messages: list[dict],
+        attachments: list | None = None,
         stream: bool = False,
-    ) -> Union[str, Generator]:
+    ) -> str | Generator:
         """
         Main orchestration method for processing LLM message flow.
 
@@ -98,8 +96,8 @@ class LLMHandler(ABC):
             )
 
     def prepare_messages(
-        self, agent, messages: List[Dict], attachments: Optional[List] = None
-    ) -> List[Dict]:
+        self, agent, messages: list[dict], attachments: list | None = None
+    ) -> list[dict]:
         """
         Prepare messages with attachments and provider-specific formatting.
 
@@ -144,8 +142,8 @@ class LLMHandler(ABC):
         return messages
 
     def _append_unsupported_attachments(
-        self, messages: List[Dict], attachments: List[Dict]
-    ) -> List[Dict]:
+        self, messages: list[dict], attachments: list[dict]
+    ) -> list[dict]:
         """
         Default method to append unsupported attachment content to system prompt.
 
@@ -179,7 +177,7 @@ class LLMHandler(ABC):
         return prepared_messages
 
     def handle_tool_calls(
-        self, agent, tool_calls: List[ToolCall], tools_dict: Dict, messages: List[Dict]
+        self, agent, tool_calls: list[ToolCall], tools_dict: dict, messages: list[dict]
     ) -> Generator:
         """
         Execute tool calls and update conversation history.
@@ -222,11 +220,11 @@ class LLMHandler(ABC):
 
                 updated_messages.append(self.create_tool_message(call, tool_response))
             except Exception as e:
-                logger.error(f"Error executing tool: {str(e)}", exc_info=True)
+                logger.error(f"Error executing tool: {e!s}", exc_info=True)
                 error_call = ToolCall(
                     id=call.id, name=call.name, arguments=call.arguments
                 )
-                error_response = f"Error executing tool: {str(e)}"
+                error_response = f"Error executing tool: {e!s}"
                 error_message = self.create_tool_message(error_call, error_response)
                 updated_messages.append(error_message)
 
@@ -254,7 +252,7 @@ class LLMHandler(ABC):
         return updated_messages
 
     def handle_non_streaming(
-        self, agent, response: Any, tools_dict: Dict, messages: List[Dict]
+        self, agent, response: Any, tools_dict: dict, messages: list[dict]
     ) -> Generator:
         """
         Handle non-streaming response flow.
@@ -289,7 +287,7 @@ class LLMHandler(ABC):
         return parsed.content
 
     def handle_streaming(
-        self, agent, response: Any, tools_dict: Dict, messages: List[Dict]
+        self, agent, response: Any, tools_dict: dict, messages: list[dict]
     ) -> Generator:
         """
         Handle streaming response flow.

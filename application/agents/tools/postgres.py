@@ -1,5 +1,7 @@
 import psycopg2
+
 from application.agents.tools.base import Tool
+
 
 class PostgresTool(Tool):
     """

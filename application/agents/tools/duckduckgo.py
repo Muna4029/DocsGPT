@@ -1,5 +1,6 @@
-from application.agents.tools.base import Tool
 from duckduckgo_search import DDGS
+
+from application.agents.tools.base import Tool
 
 
 class DuckDuckGoSearchTool(Tool):
@@ -43,7 +44,7 @@ class DuckDuckGoSearchTool(Tool):
         except Exception as e:
             return {
                 "status_code": 500,
-                "message": f"Web search failed: {str(e)}",
+                "message": f"Web search failed: {e!s}",
             }
 
     def _image_search(
@@ -67,7 +68,7 @@ class DuckDuckGoSearchTool(Tool):
         except Exception as e:
             return {
                 "status_code": 500,
-                "message": f"Image search failed: {str(e)}",
+                "message": f"Image search failed: {e!s}",
             }
 
     def get_actions_metadata(self):

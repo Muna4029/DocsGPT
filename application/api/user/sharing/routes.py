@@ -6,7 +6,7 @@ from bson.binary import Binary, UuidRepresentation
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, inputs, Namespace, Resource
+from flask_restx import Namespace, Resource, fields, inputs
 
 from application.api import api
 from application.api.user.base import (
@@ -252,7 +252,7 @@ class GetPubliclySharedConversations(Resource):
                 ]
 
                 for query in conversation_queries:
-                    if "attachments" in query and query["attachments"]:
+                    if query.get("attachments"):
                         attachment_details = []
                         for attachment_id in query["attachments"]:
                             try:

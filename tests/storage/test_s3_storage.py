@@ -4,9 +4,9 @@ import io
 from unittest.mock import MagicMock, patch
 
 import pytest
+from botocore.exceptions import ClientError
 
 from application.storage.s3 import S3Storage
-from botocore.exceptions import ClientError
 
 
 @pytest.fixture

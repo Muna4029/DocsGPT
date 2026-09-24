@@ -1,7 +1,8 @@
 """Local file system implementation."""
 import os
 import shutil
-from typing import BinaryIO, List, Callable
+from collections.abc import Callable
+from typing import BinaryIO
 
 from application.storage.base import BaseStorage
 
@@ -66,7 +67,7 @@ class LocalStorage(BaseStorage):
         full_path = self._get_full_path(path)
         return os.path.exists(full_path)
 
-    def list_files(self, directory: str) -> List[str]:
+    def list_files(self, directory: str) -> list[str]:
         """List all files in a directory in local storage."""
         full_path = self._get_full_path(directory)
 

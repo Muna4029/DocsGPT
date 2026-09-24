@@ -4,21 +4,21 @@ Contains parser for .png, .jpg, .jpeg files.
 
 """
 from pathlib import Path
-import requests
-from typing import Dict, Union
 
-from application.parser.file.base_parser import BaseParser
+import requests
+
 from application.core.settings import settings
+from application.parser.file.base_parser import BaseParser
 
 
 class ImageParser(BaseParser):
     """Image parser."""
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 
-    def parse_file(self, file: Path, errors: str = "ignore") -> Union[str, list[str]]:
+    def parse_file(self, file: Path, errors: str = "ignore") -> str | list[str]:
         if settings.PARSE_IMAGE_REMOTE:
             doc2md_service = "https://llm.arc53.com/doc2md"
             # alternatively you can use local vision capable LLM

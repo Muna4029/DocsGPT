@@ -1,8 +1,9 @@
 from unittest.mock import MagicMock, patch
 
+from langchain.docstore.document import Document as LCDocument
+
 from application.parser.remote.crawler_loader import CrawlerLoader
 from application.parser.schema.base import Document
-from langchain.docstore.document import Document as LCDocument
 
 
 class DummyResponse:

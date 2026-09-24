@@ -1,7 +1,8 @@
-from io import BytesIO
 import base64
-from application.tts.base import BaseTTS
+from io import BytesIO
+
 from application.core.settings import settings
+from application.tts.base import BaseTTS
 
 
 class ElevenlabsTTS(BaseTTS):

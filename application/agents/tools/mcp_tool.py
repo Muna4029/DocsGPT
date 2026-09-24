@@ -3,18 +3,9 @@ import base64
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from application.agents.tools.base import Tool
-from application.api.user.tasks import mcp_oauth_status_task, mcp_oauth_task
-from application.cache import get_redis_instance
-
-from application.core.mongo_db import MongoDB
-
-from application.core.settings import settings
-
-from application.security.encryption import decrypt_credentials
 from fastmcp import Client
 from fastmcp.client.auth import BearerAuth
 from fastmcp.client.transports import (
@@ -24,9 +15,15 @@ from fastmcp.client.transports import (
 )
 from mcp.client.auth import OAuthClientProvider, TokenStorage
 from mcp.shared.auth import OAuthClientInformationFull, OAuthClientMetadata, OAuthToken
-
 from pydantic import AnyHttpUrl, ValidationError
 from redis import Redis
+
+from application.agents.tools.base import Tool
+from application.api.user.tasks import mcp_oauth_status_task, mcp_oauth_task
+from application.cache import get_redis_instance
+from application.core.mongo_db import MongoDB
+from application.core.settings import settings
+from application.security.encryption import decrypt_credentials
 
 mongo = MongoDB.get_client()
 db = mongo[settings.MONGO_DB_NAME]
@@ -40,7 +37,7 @@ class MCPTool(Tool):
     Connect to remote Model Context Protocol (MCP) servers to access dynamic tools and resources.
     """
 
-    def __init__(self, config: Dict[str, Any], user_id: Optional[str] = None):
+    def __init__(self, config: dict[str, Any], user_id: str | None = None):
         """
         Initialize the MCP Tool with configuration.
 
@@ -182,7 +179,7 @@ class MCPTool(Tool):
         else:
             return StreamableHttpTransport(url=self.server_url, headers=headers)
 
-    def _format_tools(self, tools_response) -> List[Dict]:
+    def _format_tools(self, tools_response) -> list[dict]:
         """Format tools response to match expected format."""
         if hasattr(tools_response, "tools"):
             tools = tools_response.tools
@@ -264,7 +261,7 @@ class MCPTool(Tool):
             print(f"Error occurred while running async operation: {e}")
             raise
 
-    def discover_tools(self) -> List[Dict]:
+    def discover_tools(self) -> list[dict]:
         """
         Discover available tools from the MCP server using FastMCP.
 
@@ -280,7 +277,7 @@ class MCPTool(Tool):
             self.available_tools = tools
             return self.available_tools
         except Exception as e:
-            raise Exception(f"Failed to discover tools from MCP server: {str(e)}")
+            raise Exception(f"Failed to discover tools from MCP server: {e!s}")
 
     def execute_action(self, action_name: str, **kwargs) -> Any:
         """
@@ -308,9 +305,9 @@ class MCPTool(Tool):
             )
             return self._format_result(result)
         except Exception as e:
-            raise Exception(f"Failed to execute action '{action_name}': {str(e)}")
+            raise Exception(f"Failed to execute action '{action_name}': {e!s}")
 
-    def _format_result(self, result) -> Dict:
+    def _format_result(self, result) -> dict:
         """Format FastMCP result to match expected format."""
         if hasattr(result, "content"):
             content_list = []
@@ -330,7 +327,7 @@ class MCPTool(Tool):
         else:
             return result
 
-    def test_connection(self) -> Dict:
+    def test_connection(self) -> dict:
         """
         Test the connection to the MCP server and validate functionality.
 
@@ -356,14 +353,14 @@ class MCPTool(Tool):
         except Exception as e:
             return {
                 "success": False,
-                "message": f"Connection failed: {str(e)}",
+                "message": f"Connection failed: {e!s}",
                 "tools_count": 0,
                 "transport_type": self.transport_type,
                 "auth_type": self.auth_type,
                 "error_type": type(e).__name__,
             }
 
-    def _test_regular_connection(self) -> Dict:
+    def _test_regular_connection(self) -> dict:
         """Test connection for non-OAuth auth types."""
         try:
             self._run_async_operation("ping")
@@ -385,7 +382,7 @@ class MCPTool(Tool):
             "tools": [tool.get("name", "unknown") for tool in tools],
         }
 
-    def _test_oauth_connection(self) -> Dict:
+    def _test_oauth_connection(self) -> dict:
         """Test connection for OAuth auth type with proper async handling."""
         try:
             task = mcp_oauth_task.delay(config=self.config, user=self.user_id)
@@ -401,14 +398,14 @@ class MCPTool(Tool):
         except Exception as e:
             return {
                 "success": False,
-                "message": f"OAuth connection failed: {str(e)}",
+                "message": f"OAuth connection failed: {e!s}",
                 "tools_count": 0,
                 "transport_type": self.transport_type,
                 "auth_type": self.auth_type,
                 "error_type": type(e).__name__,
             }
 
-    def get_actions_metadata(self) -> List[Dict]:
+    def get_actions_metadata(self) -> list[dict]:
         """
         Get metadata for all available actions.
 
@@ -452,7 +449,7 @@ class MCPTool(Tool):
             actions.append(action)
         return actions
 
-    def get_config_requirements(self) -> Dict:
+    def get_config_requirements(self) -> dict:
         """Get configuration requirements for the MCP tool."""
         return {
             "server_url": {
@@ -823,7 +820,7 @@ class MCPOAuthManager:
         self.redis_prefix = redis_prefix
 
     def handle_oauth_callback(
-        self, state: str, code: str, error: Optional[str] = None
+        self, state: str, code: str, error: str | None = None
     ) -> bool:
         """
         Handle OAuth callback from provider.
@@ -854,7 +851,7 @@ class MCPOAuthManager:
             logging.error(f"Error handling OAuth callback: {e}")
             return False
 
-    def get_oauth_status(self, task_id: str) -> Dict[str, Any]:
+    def get_oauth_status(self, task_id: str) -> dict[str, Any]:
         """Get current status of OAuth flow using provided task_id."""
         if not task_id:
             return {"status": "not_started", "message": "OAuth flow not started"}

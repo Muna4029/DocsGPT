@@ -21,7 +21,7 @@ def handle_auth(request, data={}):
             return decoded_token
         except Exception as e:
             return {
-                "message": f"Authentication error: {str(e)}",
+                "message": f"Authentication error: {e!s}",
                 "error": "invalid_token",
             }
     else:

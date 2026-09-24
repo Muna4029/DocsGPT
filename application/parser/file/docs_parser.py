@@ -4,16 +4,17 @@ Contains parsers for docx, pdf files.
 
 """
 from pathlib import Path
-from typing import Dict
 
-from application.parser.file.base_parser import BaseParser
-from application.core.settings import settings
 import requests
+
+from application.core.settings import settings
+from application.parser.file.base_parser import BaseParser
+
 
 class PDFParser(BaseParser):
     """PDF parser."""
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 
@@ -54,7 +55,7 @@ class PDFParser(BaseParser):
 class DocxParser(BaseParser):
     """Docx parser."""
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 

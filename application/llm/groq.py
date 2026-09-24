@@ -1,5 +1,6 @@
-from application.llm.base import BaseLLM
 from openai import OpenAI
+
+from application.llm.base import BaseLLM
 
 
 class GroqLLM(BaseLLM):

@@ -1,5 +1,6 @@
 import uuid
-from typing import Any, Dict, Generator
+from collections.abc import Generator
+from typing import Any
 
 from application.llm.handlers.base import LLMHandler, LLMResponse, ToolCall
 
@@ -57,7 +58,7 @@ class GoogleLLMHandler(LLMHandler):
                 raw_response=response,
             )
 
-    def create_tool_message(self, tool_call: ToolCall, result: Any) -> Dict:
+    def create_tool_message(self, tool_call: ToolCall, result: Any) -> dict:
         """Create Google-style tool message."""
 
         return {

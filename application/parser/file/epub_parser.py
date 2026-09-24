@@ -4,7 +4,6 @@ Contains parsers for epub files.
 """
 
 from pathlib import Path
-from typing import Dict
 
 from application.parser.file.base_parser import BaseParser
 
@@ -12,7 +11,7 @@ from application.parser.file.base_parser import BaseParser
 class EpubParser(BaseParser):
     """Epub Parser."""
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 

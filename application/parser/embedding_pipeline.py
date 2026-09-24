@@ -1,8 +1,10 @@
-import os
 import logging
-from typing import List, Optional, Any
+import os
+from typing import Any
+
 from retry import retry
 from tqdm import tqdm
+
 from application.core.settings import settings
 from application.vectorstore.vector_creator import VectorCreator
 
@@ -45,7 +47,7 @@ def add_text_to_store_with_retry(store: Any, doc: Any, source_id: str) -> None:
         raise
 
 
-def embed_and_store_documents(docs: List[Any], folder_name: str, source_id: str, task_status: Any) -> None:
+def embed_and_store_documents(docs: list[Any], folder_name: str, source_id: str, task_status: Any) -> None:
     """Embeds documents and stores them in a vector store.
 
     Args:

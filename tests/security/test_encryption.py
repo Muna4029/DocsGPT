@@ -1,10 +1,11 @@
 import base64
 
 import pytest
-from application.security import encryption
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+from application.security import encryption
 
 
 def _fake_os_urandom_factory(values):

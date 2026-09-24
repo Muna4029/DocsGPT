@@ -1,10 +1,10 @@
 import datetime
 import functools
 import inspect
-
 import logging
 import uuid
-from typing import Any, Callable, Dict, Generator, List
+from collections.abc import Callable, Generator
+from typing import Any
 
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
@@ -26,10 +26,10 @@ class LogContext:
 
 def build_stack_data(
     obj: Any,
-    include_attributes: List[str] = None,
-    exclude_attributes: List[str] = None,
-    custom_data: Dict = None,
-) -> Dict:
+    include_attributes: list[str] = None,
+    exclude_attributes: list[str] = None,
+    custom_data: dict = None,
+) -> dict:
     if obj is None:
         raise ValueError("The 'obj' parameter cannot be None")
     data = {}
@@ -129,7 +129,7 @@ def _log_to_mongodb(
     user: str,
     api_key: str,
     query: str,
-    stacks: List[Dict],
+    stacks: list[dict],
     level: str,
 ) -> None:
     try:

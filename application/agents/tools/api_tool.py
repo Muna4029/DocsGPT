@@ -1,6 +1,7 @@
 import json
 
 import requests
+
 from application.agents.tools.base import Tool
 
 
@@ -62,7 +63,7 @@ class APITool(Tool):
         except requests.exceptions.RequestException as e:
             return {
                 "status_code": response.status_code if response else None,
-                "message": f"API call failed: {str(e)}",
+                "message": f"API call failed: {e!s}",
             }
 
     def get_actions_metadata(self):

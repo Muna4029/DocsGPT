@@ -1,7 +1,8 @@
-import pymongo
+import logging
 import os
 import shutil
-import logging
+
+import pymongo
 from tqdm import tqdm
 
 # Configure logging

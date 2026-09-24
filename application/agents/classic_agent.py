@@ -1,8 +1,9 @@
-from typing import Dict, Generator
+import logging
+from collections.abc import Generator
+
 from application.agents.base import BaseAgent
 from application.logging import LogContext
 from application.retriever.base import BaseRetriever
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class ClassicAgent(BaseAgent):
 
     def _gen_inner(
         self, query: str, retriever: BaseRetriever, log_context: LogContext
-    ) -> Generator[Dict, None, None]:
+    ) -> Generator[dict, None, None]:
         # Step 1: Retrieve relevant data
         retrieved_data = self._retriever_search(retriever, query, log_context)
 

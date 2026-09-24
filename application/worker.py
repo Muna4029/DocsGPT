@@ -6,10 +6,9 @@ import os
 import shutil
 import string
 import tempfile
-from typing import Any, Dict
 import zipfile
-
 from collections import Counter
+from typing import Any
 from urllib.parse import urljoin
 
 import requests
@@ -18,7 +17,6 @@ from bson.objectid import ObjectId
 
 from application.agents.agent_creator import AgentCreator
 from application.api.answer.services.stream_processor import get_prompt
-
 from application.cache import get_redis_instance
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
@@ -29,7 +27,6 @@ from application.parser.file.bulk import SimpleDirectoryReader
 from application.parser.remote.remote_creator import RemoteCreator
 from application.parser.schema.base import Document
 from application.retriever.retriever_creator import RetrieverCreator
-
 from application.storage.storage_creator import StorageCreator
 from application.utils import count_tokens_docs, num_tokens_from_string
 
@@ -937,7 +934,7 @@ def ingest_connector(
     operation_mode: str = "upload",
     doc_id=None,
     sync_frequency: str = "never",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Ingestion for internal knowledge bases (GoogleDrive, etc.).
 
@@ -1128,7 +1125,7 @@ def ingest_connector(
             raise
 
 
-def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, Any]:
+def mcp_oauth(self, config: dict[str, Any], user_id: str = None) -> dict[str, Any]:
     """Worker to handle MCP OAuth flow asynchronously."""
 
     logging.info(
@@ -1143,7 +1140,7 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
         logging.info("[MCP OAuth] Task ID: %s", task_id)
         redis_client = get_redis_instance()
 
-        def update_status(status_data: Dict[str, Any]):
+        def update_status(status_data: dict[str, Any]):
             logging.info("[MCP OAuth] Updating status: %s", status_data)
             status_key = f"mcp_oauth_status:{task_id}"
             redis_client.setex(status_key, 600, json.dumps(status_data))
@@ -1212,7 +1209,7 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
             )
             return {"success": True, "tools": tools, "tools_count": len(tools)}
         except Exception as e:
-            error_msg = f"OAuth flow failed: {str(e)}"
+            error_msg = f"OAuth flow failed: {e!s}"
             logging.error(
                 "[MCP OAuth] Exception in OAuth discovery: %s", error_msg, exc_info=True
             )
@@ -1229,7 +1226,7 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
             logging.info("[MCP OAuth] Closing event loop for task_id=%s", task_id)
             loop.close()
     except Exception as e:
-        error_msg = f"Failed to initialize OAuth flow: {str(e)}"
+        error_msg = f"Failed to initialize OAuth flow: {e!s}"
         logging.error(
             "[MCP OAuth] Exception during initialization: %s", error_msg, exc_info=True
         )
@@ -1244,7 +1241,7 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
         return {"success": False, "error": error_msg}
 
 
-def mcp_oauth_status(self, task_id: str) -> Dict[str, Any]:
+def mcp_oauth_status(self, task_id: str) -> dict[str, Any]:
     """Check the status of an MCP OAuth flow."""
     redis_client = get_redis_instance()
     status_key = f"mcp_oauth_status:{task_id}"

@@ -1,12 +1,13 @@
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 import re
 import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
-from .base import Tool
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
+
+from .base import Tool
 
 
 class MemoryTool(Tool):
@@ -15,7 +16,7 @@ class MemoryTool(Tool):
     Stores and retrieves information across conversations through a memory file directory.
     """
 
-    def __init__(self, tool_config: Optional[Dict[str, Any]] = None, user_id: Optional[str] = None) -> None:
+    def __init__(self, tool_config: dict[str, Any] | None = None, user_id: str | None = None) -> None:
         """Initialize the tool.
 
         Args:
@@ -24,7 +25,7 @@ class MemoryTool(Tool):
                            This ensures each user's tool configuration has isolated memories
             user_id: The authenticated user's id (should come from decoded_token["sub"]).
         """
-        self.user_id: Optional[str] = user_id
+        self.user_id: str | None = user_id
 
         # Get tool_id from configuration (passed from user_tools._id in production)
         # In production, tool_id is the MongoDB ObjectId string from user_tools collection
@@ -93,7 +94,7 @@ class MemoryTool(Tool):
 
         return f"Unknown action: {action_name}"
 
-    def get_actions_metadata(self) -> List[Dict[str, Any]]:
+    def get_actions_metadata(self) -> list[dict[str, Any]]:
         """Return JSON metadata describing supported actions for tool schemas."""
         return [
             {
@@ -211,14 +212,14 @@ class MemoryTool(Tool):
             },
         ]
 
-    def get_config_requirements(self) -> Dict[str, Any]:
+    def get_config_requirements(self) -> dict[str, Any]:
         """Return configuration requirements."""
         return {}
 
     # -----------------------------
     # Path validation
     # -----------------------------
-    def _validate_path(self, path: str) -> Optional[str]:
+    def _validate_path(self, path: str) -> str | None:
         """Validate and normalize path.
 
         Args:
@@ -264,7 +265,7 @@ class MemoryTool(Tool):
     # -----------------------------
     # Internal helpers
     # -----------------------------
-    def _view(self, path: str, view_range: Optional[List[int]] = None) -> str:
+    def _view(self, path: str, view_range: list[int] | None = None) -> str:
         """View directory contents or file contents."""
         validated_path = self._validate_path(path)
         if not validated_path:
@@ -308,7 +309,7 @@ class MemoryTool(Tool):
         file_list = "\n".join(f"- {f}" for f in files)
         return f"Directory: {path}\n{file_list}"
 
-    def _view_file(self, path: str, view_range: Optional[List[int]] = None) -> str:
+    def _view_file(self, path: str, view_range: list[int] | None = None) -> str:
         """View file contents with optional line range."""
         doc = self.collection.find_one({"user_id": self.user_id, "tool_id": self.tool_id, "path": path})
 

@@ -7,7 +7,7 @@ import zipfile
 
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.api import api
 from application.api.user.base import sources_collection
@@ -16,7 +16,6 @@ from application.core.settings import settings
 from application.parser.connectors.connector_creator import ConnectorCreator
 from application.storage.storage_creator import StorageCreator
 from application.utils import check_required_fields, safe_filename
-
 
 sources_upload_ns = Namespace(
     "sources", description="Source document management operations", path="/api"

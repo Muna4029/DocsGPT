@@ -83,15 +83,11 @@ class OpenAILLM(BaseLLM):
                                 "type" in item
                                 and item["type"] == "text"
                                 and "text" in item
-                            ):
-                                content_parts.append(item)
-                            elif (
+                            ) or (
                                 "type" in item
                                 and item["type"] == "file"
                                 and "file" in item
-                            ):
-                                content_parts.append(item)
-                            elif (
+                            ) or (
                                 "type" in item
                                 and item["type"] == "image_url"
                                 and "image_url" in item

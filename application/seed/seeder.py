@@ -1,12 +1,10 @@
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Union
 
 import yaml
 from bson import ObjectId
 from bson.dbref import DBRef
-
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -42,10 +40,10 @@ class DatabaseSeeder:
                 config = yaml.safe_load(f)
                 self._seed_from_config(config)
         except Exception as e:
-            self.logger.error(f"Failed to load seeding config: {str(e)}")
+            self.logger.error(f"Failed to load seeding config: {e!s}")
             raise
 
-    def _seed_from_config(self, config: Dict):
+    def _seed_from_config(self, config: dict):
         """Seed all data from configuration"""
         self.logger.info("🌱 Starting seeding...")
 
@@ -118,12 +116,12 @@ class DatabaseSeeder:
                 )
             except Exception as e:
                 self.logger.error(
-                    f"Error processing agent {agent_config['name']}: {str(e)}"
+                    f"Error processing agent {agent_config['name']}: {e!s}"
                 )
                 continue
         self.logger.info("✅ Database seeding completed")
 
-    def _handle_source(self, agent_config: Dict) -> Union[ObjectId, None, bool]:
+    def _handle_source(self, agent_config: dict) -> ObjectId | None | bool:
         """Handle source ingestion and return source ID"""
         if not agent_config.get("source"):
             self.logger.info(
@@ -161,10 +159,10 @@ class DatabaseSeeder:
             self.logger.info(f"Source ingested successfully: {source_id}")
             return source_id
         except Exception as e:
-            self.logger.error(f"Failed to ingest source: {str(e)}")
+            self.logger.error(f"Failed to ingest source: {e!s}")
             return False
 
-    def _handle_tools(self, agent_config: Dict) -> List[ObjectId]:
+    def _handle_tools(self, agent_config: dict) -> list[ObjectId]:
         """Handle tool creation and return list of tool IDs"""
         tool_ids = []
         if not agent_config.get("tools"):
@@ -200,11 +198,11 @@ class DatabaseSeeder:
                 tool_ids.append(result.inserted_id)
                 self.logger.info(f"Created new tool: {result.inserted_id}")
             except Exception as e:
-                self.logger.error(f"Failed to process tool {tool_name}: {str(e)}")
+                self.logger.error(f"Failed to process tool {tool_name}: {e!s}")
                 continue
         return tool_ids
 
-    def _handle_prompt(self, agent_config: Dict) -> Optional[str]:
+    def _handle_prompt(self, agent_config: dict) -> str | None:
         """Handle prompt creation and return prompt ID"""
         if not agent_config.get("prompt"):
             return None
@@ -245,10 +243,10 @@ class DatabaseSeeder:
             return prompt_id
 
         except Exception as e:
-            self.logger.error(f"Failed to process prompt {prompt_name}: {str(e)}")
+            self.logger.error(f"Failed to process prompt {prompt_name}: {e!s}")
             return None
 
-    def _process_config(self, config: Dict) -> Dict:
+    def _process_config(self, config: dict) -> dict:
         """Process config values to replace environment variables"""
         processed = {}
         for key, value in config.items():

@@ -1,6 +1,6 @@
-import logging
 import datetime
-from typing import Optional, Dict, Any
+import logging
+from typing import Any
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -30,7 +30,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
 
 
 
-    def get_authorization_url(self, state: Optional[str] = None) -> str:
+    def get_authorization_url(self, state: str | None = None) -> str:
         try:
             flow = Flow.from_client_config(
                 {
@@ -59,7 +59,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
             logging.error(f"Error generating authorization URL: {e}")
             raise
     
-    def exchange_code_for_tokens(self, authorization_code: str) -> Dict[str, Any]:
+    def exchange_code_for_tokens(self, authorization_code: str) -> dict[str, Any]:
         try:
             if not authorization_code:
                 raise ValueError("Authorization code is required")
@@ -115,7 +115,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
             logging.error(f"Error exchanging code for tokens: {e}")
             raise
     
-    def refresh_access_token(self, refresh_token: str) -> Dict[str, Any]:
+    def refresh_access_token(self, refresh_token: str) -> dict[str, Any]:
         try:
             if not refresh_token:
                 raise ValueError("Refresh token is required")
@@ -144,7 +144,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
             logging.error(f"Error refreshing access token: {e}", exc_info=True)
             raise
     
-    def create_credentials_from_token_info(self, token_info: Dict[str, Any]) -> Credentials:
+    def create_credentials_from_token_info(self, token_info: dict[str, Any]) -> Credentials:
         from application.core.settings import settings
 
         access_token = token_info.get('access_token')
@@ -189,10 +189,10 @@ class GoogleDriveAuth(BaseConnectorAuth):
         except HttpError as e:
             raise ValueError(f"Failed to build Google Drive service: HTTP {e.resp.status}")
         except Exception as e:
-            raise ValueError(f"Failed to build Google Drive service: {str(e)}")
+            raise ValueError(f"Failed to build Google Drive service: {e!s}")
         
     def is_token_expired(self, token_info):
-        if 'expiry' in token_info and token_info['expiry']:
+        if token_info.get('expiry'):
             try:
                 from dateutil import parser
                 # Google Drive provides timezone-aware ISO8601 dates
@@ -202,12 +202,12 @@ class GoogleDriveAuth(BaseConnectorAuth):
             except Exception:
                 return True
 
-        if 'access_token' in token_info and token_info['access_token']:
+        if token_info.get('access_token'):
             return False
 
         return True
     
-    def get_token_info_from_session(self, session_token: str) -> Dict[str, Any]:
+    def get_token_info_from_session(self, session_token: str) -> dict[str, Any]:
         try:
             from application.core.mongo_db import MongoDB
             from application.core.settings import settings
@@ -242,7 +242,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
             return token_info
 
         except Exception as e:
-            raise ValueError(f"Failed to retrieve Google Drive token information: {str(e)}")
+            raise ValueError(f"Failed to retrieve Google Drive token information: {e!s}")
 
     def validate_credentials(self, credentials: Credentials) -> bool:
         """

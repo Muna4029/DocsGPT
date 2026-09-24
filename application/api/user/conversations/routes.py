@@ -4,7 +4,7 @@ import datetime
 
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.api import api
 from application.api.user.base import attachments_collection, conversations_collection
@@ -129,7 +129,7 @@ class GetSingleConversation(Resource):
 
             queries = conversation["queries"]
             for query in queries:
-                if "attachments" in query and query["attachments"]:
+                if query.get("attachments"):
                     attachment_details = []
                     for attachment_id in query["attachments"]:
                         try:

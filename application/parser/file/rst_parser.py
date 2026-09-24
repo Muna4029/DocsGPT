@@ -5,7 +5,7 @@ Contains parser for md files.
 """
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from application.parser.file.base_parser import BaseParser
 
@@ -41,13 +41,13 @@ class RstParser(BaseParser):
         self._remove_whitespaces_excess = remove_whitespaces_excess
         self._remove_characters_excess = remove_characters_excess
 
-    def rst_to_tups(self, rst_text: str) -> List[Tuple[Optional[str], str]]:
+    def rst_to_tups(self, rst_text: str) -> list[tuple[str | None, str]]:
         """Convert a reStructuredText file to a dictionary.
 
         The keys are the headers and the values are the text under each header.
 
         """
-        rst_tups: List[Tuple[Optional[str], str]] = []
+        rst_tups: list[tuple[str | None, str]] = []
         lines = rst_text.split("\n")
 
         current_header = None
@@ -91,7 +91,7 @@ class RstParser(BaseParser):
             ]
         return rst_tups
 
-    def chunk_by_token_count(self, text: str, max_tokens: int = 100) -> List[str]:
+    def chunk_by_token_count(self, text: str, max_tokens: int = 100) -> list[str]:
         """Chunk text by token count."""
     
         avg_token_length = 5
@@ -138,25 +138,25 @@ class RstParser(BaseParser):
         content = re.sub(pattern, "", content, flags=re.MULTILINE)
         return content
 
-    def remove_whitespaces_excess(self, content: List[Tuple[str, Any]]) -> List[Tuple[str, Any]]:
+    def remove_whitespaces_excess(self, content: list[tuple[str, Any]]) -> list[tuple[str, Any]]:
         """Pattern to match 2 or more consecutive whitespaces"""
         pattern = r"\s{2,}"
         content = [(key, re.sub(pattern, "  ", value)) for key, value in content]
         return content
 
-    def remove_characters_excess(self, content: List[Tuple[str, Any]]) -> List[Tuple[str, Any]]:
+    def remove_characters_excess(self, content: list[tuple[str, Any]]) -> list[tuple[str, Any]]:
         """Pattern to match 2 or more consecutive characters"""
         pattern = r"(\S)\1{2,}"
         content = [(key, re.sub(pattern, r"\1\1\1", value, flags=re.MULTILINE)) for key, value in content]
         return content
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Initialize the parser with the config."""
         return {}
 
     def parse_tups(
-            self, filepath: Path, errors: str = "ignore",max_tokens: Optional[int] = 1000
-    ) -> List[Tuple[Optional[str], str]]:
+            self, filepath: Path, errors: str = "ignore",max_tokens: int | None = 1000
+    ) -> list[tuple[str | None, str]]:
         """Parse file into tuples."""
         with open(filepath, "r") as f:
             content = f.read()
@@ -188,7 +188,7 @@ class RstParser(BaseParser):
 
     def parse_file(
             self, filepath: Path, errors: str = "ignore"
-    ) -> Union[str, List[str]]:
+    ) -> str | list[str]:
         """Parse file into string."""
         tups = self.parse_tups(filepath, errors=errors)
         results = []

@@ -1,6 +1,7 @@
 from celery import Celery
-from application.core.settings import settings
 from celery.signals import setup_logging
+
+from application.core.settings import settings
 
 
 def make_celery(app_name=__name__):

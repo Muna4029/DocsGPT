@@ -6,10 +6,9 @@ import datetime
 import os
 import uuid
 from functools import wraps
-from typing import Optional, Tuple
 
 from bson.objectid import ObjectId
-from flask import current_app, jsonify, make_response, Response
+from flask import Response, current_app, jsonify, make_response
 from pymongo import ReturnDocument
 from werkzeug.utils import secure_filename
 
@@ -17,7 +16,6 @@ from application.core.mongo_db import MongoDB
 from application.core.settings import settings
 from application.storage.storage_creator import StorageCreator
 from application.vectorstore.vector_creator import VectorCreator
-
 
 storage = StorageCreator.get_storage()
 
@@ -154,7 +152,7 @@ def get_vector_store(source_id):
 
 def handle_image_upload(
     request, existing_url: str, user: str, storage, base_path: str = "attachments/"
-) -> Tuple[str, Optional[Response]]:
+) -> tuple[str, Response | None]:
     """
     Handle image file upload from request.
 

@@ -2,6 +2,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from application.cache import gen_cache, gen_cache_key, stream_cache
 from application.utils import get_hash
 

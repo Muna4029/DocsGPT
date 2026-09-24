@@ -7,10 +7,9 @@ import uuid
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 
 from application.api import api
-from application.core.settings import settings
 from application.api.user.base import (
     agents_collection,
     db,
@@ -20,12 +19,12 @@ from application.api.user.base import (
     storage,
     users_collection,
 )
+from application.core.settings import settings
 from application.utils import (
     check_required_fields,
     generate_image_url,
     validate_required_fields,
 )
-
 
 agents_ns = Namespace("agents", description="Agent management operations", path="/api")
 
@@ -286,7 +285,7 @@ class CreateAgent(Resource):
             except Exception as e:
                 return make_response(
                     jsonify(
-                        {"success": False, "message": f"Invalid JSON schema: {str(e)}"}
+                        {"success": False, "message": f"Invalid JSON schema: {e!s}"}
                     ),
                     400,
                 )
@@ -469,7 +468,7 @@ class UpdateAgent(Resource):
                 data = request.form.to_dict()
                 json_fields = ["tools", "sources", "json_schema"]
                 for field in json_fields:
-                    if field in data and data[field]:
+                    if data.get(field):
                         try:
                             data[field] = json.loads(data[field])
                         except json.JSONDecodeError:

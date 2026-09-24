@@ -3,28 +3,17 @@ import datetime
 import json
 import uuid
 
-
 from bson.objectid import ObjectId
-from flask import (
-    Blueprint,
-    current_app,
-    jsonify,
-    make_response,
-    request
-)
-from flask_restx import fields, Namespace, Resource
+from flask import Blueprint, current_app, jsonify, make_response, request
+from flask_restx import Namespace, Resource, fields
 
-
+from application.api import api
 from application.api.user.tasks import (
     ingest_connector_task,
 )
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
-from application.api import api
-
-
 from application.parser.connectors.connector_creator import ConnectorCreator
-
 
 mongo = MongoDB.get_client()
 db = mongo[settings.MONGO_DB_NAME]
@@ -85,8 +74,9 @@ class ConnectorsCallback(Resource):
     def get(self):
         """Handle OAuth callback for external connectors"""
         try:
+            from flask import redirect, request
+
             from application.parser.connectors.connector_creator import ConnectorCreator
-            from flask import request, redirect
 
             authorization_code = request.args.get('code')
             state = request.args.get('state')
@@ -144,7 +134,7 @@ class ConnectorsCallback(Resource):
                 return redirect(f"/api/connectors/callback-status?status=success&message=Authentication+successful&provider={provider}&session_token={session_token}&user_email={user_email}")
 
             except Exception as e:
-                current_app.logger.error(f"Error exchanging code for tokens: {str(e)}", exc_info=True)
+                current_app.logger.error(f"Error exchanging code for tokens: {e!s}", exc_info=True)
                 return redirect(f"/api/connectors/callback-status?status=error&message=Authentication+failed.+Please+try+again+and+make+sure+to+grant+all+requested+permissions.&provider={provider}")
 
         except Exception as e:
@@ -229,7 +219,7 @@ class ConnectorFiles(Resource):
             }), 200)
         except Exception as e:
             current_app.logger.error(f"Error loading connector files: {e}")
-            return make_response(jsonify({"success": False, "error": f"Failed to load files: {str(e)}"}), 500)
+            return make_response(jsonify({"success": False, "error": f"Failed to load files: {e!s}"}), 500)
 
 
 @connectors_ns.route("/api/connectors/validate-session")

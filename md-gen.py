@@ -1,5 +1,6 @@
 import os
 
+
 def create_markdown_from_directory(directory=".", output_file="combined.md"):
     """
     Recursively traverses the given directory, reads all files (ignoring files/folders in ignore_list),

@@ -1,4 +1,5 @@
 import pytest
+
 from application.agents.agent_creator import AgentCreator
 from application.agents.classic_agent import ClassicAgent
 from application.agents.react_agent import ReActAgent

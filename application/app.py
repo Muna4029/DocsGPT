@@ -7,19 +7,17 @@ from flask import Flask, jsonify, redirect, request
 from jose import jwt
 
 from application.auth import handle_auth
-
 from application.core.logging_config import setup_logging
 
 setup_logging()
 
-from application.api import api  # noqa: E402
-from application.api.answer import answer  # noqa: E402
-from application.api.internal.routes import internal  # noqa: E402
-from application.api.user.routes import user  # noqa: E402
-from application.api.connector.routes import connector  # noqa: E402
-from application.celery_init import celery  # noqa: E402
-from application.core.settings import settings  # noqa: E402
-
+from application.api import api
+from application.api.answer import answer
+from application.api.connector.routes import connector
+from application.api.internal.routes import internal
+from application.api.user.routes import user
+from application.celery_init import celery
+from application.core.settings import settings
 
 if platform.system() == "Windows":
     import pathlib

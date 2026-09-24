@@ -4,7 +4,6 @@ import os
 from application.core.settings import settings
 from application.llm.llm_creator import LLMCreator
 from application.retriever.base import BaseRetriever
-
 from application.vectorstore.vector_creator import VectorCreator
 
 
@@ -43,14 +42,7 @@ class ClassicRAG(BaseRetriever):
         )
         self.gpt_model = gpt_model
         self.token_limit = (
-            token_limit
-            if token_limit
-            < settings.LLM_TOKEN_LIMITS.get(
-                self.gpt_model, settings.DEFAULT_MAX_HISTORY
-            )
-            else settings.LLM_TOKEN_LIMITS.get(
-                self.gpt_model, settings.DEFAULT_MAX_HISTORY
-            )
+            min(settings.LLM_TOKEN_LIMITS.get(self.gpt_model, settings.DEFAULT_MAX_HISTORY), token_limit)
         )
         self.user_api_key = user_api_key
         self.llm_name = llm_name

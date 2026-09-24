@@ -1,11 +1,11 @@
-from application.llm.base import BaseLLM
 from application.core.settings import settings
+from application.llm.base import BaseLLM
 
 
 class AnthropicLLM(BaseLLM):
 
     def __init__(self, api_key=None, user_api_key=None, *args, **kwargs):
-        from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+        from anthropic import AI_PROMPT, HUMAN_PROMPT, Anthropic
 
         super().__init__(*args, **kwargs)
         self.api_key = (

@@ -1,8 +1,8 @@
 
-from application.llm.handlers.handler_creator import LLMHandlerCreator
 from application.llm.handlers.base import LLMHandler
-from application.llm.handlers.openai import OpenAILLMHandler
 from application.llm.handlers.google import GoogleLLMHandler
+from application.llm.handlers.handler_creator import LLMHandlerCreator
+from application.llm.handlers.openai import OpenAILLMHandler
 
 
 class TestLLMHandlerCreator:
@@ -109,9 +109,9 @@ class TestLLMHandlerCreator:
             handler = LLMHandlerCreator.create_handler(handler_type)
             assert isinstance(handler, LLMHandler)
             
-            assert callable(getattr(handler, 'parse_response'))
-            assert callable(getattr(handler, 'create_tool_message'))
-            assert callable(getattr(handler, '_iterate_stream'))
+            assert callable(handler.parse_response)
+            assert callable(handler.create_tool_message)
+            assert callable(handler._iterate_stream)
 
     def test_create_handler_preserves_handler_state(self):
         """Test that each created handler has independent state."""

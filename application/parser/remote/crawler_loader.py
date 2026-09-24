@@ -1,10 +1,13 @@
 import logging
+from urllib.parse import urljoin, urlparse
+
 import requests
-from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
+from langchain_community.document_loaders import WebBaseLoader
+
 from application.parser.remote.base import BaseRemote
 from application.parser.schema.base import Document
-from langchain_community.document_loaders import WebBaseLoader
+
 
 class CrawlerLoader(BaseRemote):
     def __init__(self, limit=10):

@@ -21,8 +21,8 @@ class HuggingFaceLLM(BaseLLM):
             from transformers import (
                 AutoModelForCausalLM,
                 AutoTokenizer,
-                pipeline,
                 BitsAndBytesConfig,
+                pipeline,
             )
 
             tokenizer = AutoTokenizer.from_pretrained(llm_name)

@@ -27,7 +27,7 @@ class EmbeddingsWrapper:
             logging.info(f"Successfully loaded model with dimension: {self.dimension}")
         except Exception as e:
             logging.error(
-                f"Failed to initialize SentenceTransformer with model {model_name}: {str(e)}",
+                f"Failed to initialize SentenceTransformer with model {model_name}: {e!s}",
                 exc_info=True,
             )
             raise
@@ -86,32 +86,25 @@ class BaseVectorStore(ABC):
     @abstractmethod
     def search(self, *args, **kwargs):
         """Search for similar documents/chunks in the vectorstore"""
-        pass
 
     @abstractmethod
     def add_texts(self, texts, metadatas=None, *args, **kwargs):
         """Add texts with their embeddings to the vectorstore"""
-        pass
 
     def delete_index(self, *args, **kwargs):
         """Delete the entire index/collection"""
-        pass
 
     def save_local(self, *args, **kwargs):
         """Save vectorstore to local storage"""
-        pass
 
     def get_chunks(self, *args, **kwargs):
         """Get all chunks from the vectorstore"""
-        pass
 
     def add_chunk(self, text, metadata=None, *args, **kwargs):
         """Add a single chunk to the vectorstore"""
-        pass
 
     def delete_chunk(self, chunk_id, *args, **kwargs):
         """Delete a specific chunk from the vectorstore"""
-        pass
 
     def is_azure_configured(self):
         return (

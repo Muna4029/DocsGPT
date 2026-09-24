@@ -2,13 +2,14 @@
 
 import io
 import os
-from typing import BinaryIO, Callable, List
+from collections.abc import Callable
+from typing import BinaryIO
 
 import boto3
-from application.core.settings import settings
-
-from application.storage.base import BaseStorage
 from botocore.exceptions import ClientError
+
+from application.core.settings import settings
+from application.storage.base import BaseStorage
 
 
 class S3Storage(BaseStorage):
@@ -84,7 +85,7 @@ class S3Storage(BaseStorage):
         except ClientError:
             return False
 
-    def list_files(self, directory: str) -> List[str]:
+    def list_files(self, directory: str) -> list[str]:
         """List all files in a directory in S3 storage."""
         # Ensure directory ends with a slash if it's not empty
 
@@ -197,7 +198,7 @@ class S3Storage(BaseStorage):
                     Delete={'Objects': batch}
                 )
 
-                if 'Errors' in response and response['Errors']:
+                if response.get('Errors'):
                     return False
 
             return True

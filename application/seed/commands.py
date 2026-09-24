@@ -8,7 +8,6 @@ from application.seed.seeder import DatabaseSeeder
 @click.group()
 def seed():
     """Database seeding commands"""
-    pass
 
 
 @seed.command()

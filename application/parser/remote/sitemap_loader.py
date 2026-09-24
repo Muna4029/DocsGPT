@@ -1,8 +1,11 @@
 import logging
-import requests
 import re  # Import regular expression library
 import xml.etree.ElementTree as ET
+
+import requests
+
 from application.parser.remote.base import BaseRemote
+
 
 class SitemapLoader(BaseRemote):
     def __init__(self, limit=20):

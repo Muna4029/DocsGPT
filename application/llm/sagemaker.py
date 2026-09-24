@@ -1,7 +1,8 @@
-from application.llm.base import BaseLLM
-from application.core.settings import settings
-import json
 import io
+import json
+
+from application.core.settings import settings
+from application.llm.base import BaseLLM
 
 
 class LineIterator:

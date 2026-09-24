@@ -9,7 +9,6 @@ from werkzeug.utils import secure_filename
 
 from application.core.settings import settings
 
-
 _encoding = None
 
 
@@ -42,7 +41,7 @@ def safe_filename(filename):
     # If secure_filename returns just the extension or an empty string
 
     if not safe_name or safe_name == extension.lstrip("."):
-        return f"{str(uuid.uuid4())}{extension}"
+        return f"{uuid.uuid4()!s}{extension}"
     return safe_name
 
 

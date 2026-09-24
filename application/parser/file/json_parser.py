@@ -1,8 +1,9 @@
 import json
-from typing import Any, Dict, List, Union
 from pathlib import Path
+from typing import Any
 
 from application.parser.file.base_parser import BaseParser
+
 
 class JSONParser(BaseParser):
     r"""JSON (.json) parser.
@@ -38,11 +39,11 @@ class JSONParser(BaseParser):
         self._row_joiner = row_joiner
         self._json_config = json_config
 
-    def _init_parser(self) -> Dict:
+    def _init_parser(self) -> dict:
         """Init parser."""
         return {}
 
-    def parse_file(self, file: Path, errors: str = "ignore") -> Union[str, List[str]]:
+    def parse_file(self, file: Path, errors: str = "ignore") -> str | list[str]:
         """Parse JSON file."""
         
         with open(file, 'r', encoding='utf-8') as f:

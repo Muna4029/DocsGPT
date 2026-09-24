@@ -1,10 +1,12 @@
+import logging
 import os
 import re
-import logging
+
 import aiohttp
+import dotenv
+
 import discord
 from discord.ext import commands
-import dotenv
 
 dotenv.load_dotenv()
 
@@ -55,7 +57,7 @@ def escape_markdown(text):
 
 def split_string(input_str):
     """Splits the input string to detect bot mentions."""
-    pattern = r'^<@!?{0}>\s*'.format(bot.user.id)
+    pattern = rf'^<@!?{bot.user.id}>\s*'
     match = re.match(pattern, input_str)
     if match:
         content = input_str[match.end():].strip()
