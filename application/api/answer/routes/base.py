@@ -155,6 +155,7 @@ class BaseAnswerResource:
         agent_id: Optional[str] = None,
         is_shared_usage: bool = False,
         shared_token: Optional[str] = None,
+        retriever: Any = None,
     ) -> Generator[str, None, None]:
         """
         Generator function that streams the complete conversation response.
