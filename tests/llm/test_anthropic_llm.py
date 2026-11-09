@@ -1,10 +1,13 @@
 import sys
 import types
+
 import pytest
+
 
 class _FakeCompletion:
     def __init__(self, text):
         self.completion = text
+
 
 class _FakeCompletions:
     def __init__(self):
@@ -16,6 +19,7 @@ class _FakeCompletions:
         if kwargs.get("stream"):
             return self._stream
         return _FakeCompletion("final")
+
 
 class _FakeAnthropic:
     def __init__(self, api_key=None):
@@ -29,6 +33,7 @@ def patch_anthropic(monkeypatch):
     fake.Anthropic = _FakeAnthropic
     fake.HUMAN_PROMPT = "<HUMAN>"
     fake.AI_PROMPT = "<AI>"
+    fake.AuthenticationError = type("AuthenticationError", (Exception,), {})
     sys.modules["anthropic"] = fake
     yield
     sys.modules.pop("anthropic", None)
@@ -42,7 +47,7 @@ def test_anthropic_raw_gen_builds_prompt_and_returns_completion():
         {"content": "ctx"},
         {"content": "q"},
     ]
-    out = llm._raw_gen(llm, model="claude-2", messages=msgs, stream=False, max_tokens=55)
+    out = llm._raw_gen(model="claude-2", messages=msgs, stream=False, max_tokens=55)
     assert out == "final"
     last = llm.anthropic.completions.last_kwargs
     assert last["model"] == "claude-2"
@@ -59,7 +64,6 @@ def test_anthropic_raw_gen_stream_yields_chunks():
         {"content": "ctx"},
         {"content": "q"},
     ]
-    gen = llm._raw_gen_stream(llm, model="claude", messages=msgs, stream=True, max_tokens=10)
+    gen = llm._raw_gen_stream(model="claude", messages=msgs, stream=True, max_tokens=10)
     chunks = list(gen)
     assert chunks == ["s1", "s2"]
-
