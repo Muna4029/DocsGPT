@@ -1,12 +1,10 @@
-from flask import Blueprint
-
 from application.api import api
+from application.api.answer.routes import answer_blueprint as answer
 from application.api.answer.routes.answer import AnswerResource
 from application.api.answer.routes.base import answer_ns
 from application.api.answer.routes.stream import StreamResource
 
-
-answer = Blueprint("answer", __name__)
+__all__ = ["answer"]
 
 api.add_namespace(answer_ns)
 
