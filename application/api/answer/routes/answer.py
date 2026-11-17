@@ -6,11 +6,15 @@ from flask_restx import fields, Resource
 
 from application.api import api
 
+from application.api.answer.routes import answer_blueprint
 from application.api.answer.routes.base import answer_ns, BaseAnswerResource
 
 from application.api.answer.services.stream_processor import StreamProcessor
 
 logger = logging.getLogger(__name__)
+
+name = answer_blueprint.name
+register = answer_blueprint.register
 
 
 @answer_ns.route("/api/answer")
