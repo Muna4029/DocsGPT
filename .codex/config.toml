@@ -1,0 +1,8 @@
+# .codex/config.toml
+
+# Safer defaults so Codex can edit files but does not run commands without asking
+sandbox = "workspace-write"
+ask_for_approval = "on-request"
+
+# Optional: pick a model if you want consistency
+# model = "gpt-5-codex"
