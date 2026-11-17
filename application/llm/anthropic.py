@@ -1,15 +1,14 @@
-from anthropic import AI_PROMPT, Anthropic, HUMAN_PROMPT
-
 from application.core.settings import settings
 from application.llm.base import BaseLLM
 
 
 class AnthropicLLM(BaseLLM):
-
     def __init__(self, api_key=None, user_api_key=None, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
-        self.api_key = api_key or settings.ANTHROPIC_API_KEY or settings.API_KEY
+        from anthropic import AI_PROMPT, HUMAN_PROMPT, Anthropic
+
+        # Prefer an explicitly provided user_api_key, then api_key, then settings
+        self.api_key = api_key or user_api_key or settings.ANTHROPIC_API_KEY or settings.API_KEY
         self.user_api_key = user_api_key
         self.anthropic = Anthropic(api_key=self.api_key)
         self.HUMAN_PROMPT = HUMAN_PROMPT
@@ -17,7 +16,6 @@ class AnthropicLLM(BaseLLM):
 
     def _raw_gen(
         self,
-        baseself,
         model,
         messages,
         stream=False,
@@ -40,7 +38,6 @@ class AnthropicLLM(BaseLLM):
 
     def _raw_gen_stream(
         self,
-        baseself,
         model,
         messages,
         stream=True,
