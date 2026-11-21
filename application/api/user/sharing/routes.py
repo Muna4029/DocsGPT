@@ -6,14 +6,13 @@ from bson.binary import Binary, UuidRepresentation
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
 from flask import current_app, jsonify, make_response, request
-from flask_restx import fields, inputs, Namespace, Resource
+from flask_restx import Namespace, Resource, fields, inputs
 
 from application.api import api
 from application.api.user.base import (
     agents_collection,
     attachments_collection,
     conversations_collection,
-    db,
     shared_conversations_collections,
 )
 from application.utils import check_required_fields
@@ -199,10 +198,8 @@ class ShareConversation(Resource):
                     ),
                     201,
                 )
-        except Exception as err:
-            current_app.logger.error(
-                f"Error sharing conversation: {err}", exc_info=True
-            )
+        except Exception:
+            current_app.logger.exception("Error sharing conversation")
             return make_response(jsonify({"success": False}), 400)
 
 
@@ -241,7 +238,7 @@ class GetPubliclySharedConversations(Resource):
                 ]
 
                 for query in conversation_queries:
-                    if "attachments" in query and query["attachments"]:
+                    if query.get("attachments"):
                         attachment_details = []
                         for attachment_id in query["attachments"]:
                             try:
@@ -257,10 +254,9 @@ class GetPubliclySharedConversations(Resource):
                                             ),
                                         }
                                     )
-                            except Exception as e:
-                                current_app.logger.error(
-                                    f"Error retrieving attachment {attachment_id}: {e}",
-                                    exc_info=True,
+                            except Exception:
+                                current_app.logger.exception(
+                                    f"Error retrieving attachment {attachment_id}"
                                 )
                         query["attachments"] = attachment_details
             else:
@@ -283,8 +279,6 @@ class GetPubliclySharedConversations(Resource):
             if shared["isPromptable"] and "api_key" in shared:
                 res["api_key"] = shared["api_key"]
             return make_response(jsonify(res), 200)
-        except Exception as err:
-            current_app.logger.error(
-                f"Error getting shared conversation: {err}", exc_info=True
-            )
+        except Exception:
+            current_app.logger.exception("Error getting shared conversation")
             return make_response(jsonify({"success": False}), 400)
