@@ -52,7 +52,7 @@ class ConversationService:
         sources: List[Dict[str, Any]],
         tool_calls: List[Dict[str, Any]],
         llm: Any,
-        model_id: str,
+        model_id: Optional[str],
         decoded_token: Dict[str, Any],
         index: Optional[int] = None,
         api_key: Optional[str] = None,
@@ -60,8 +60,10 @@ class ConversationService:
         is_shared_usage: bool = False,
         shared_token: Optional[str] = None,
         attachment_ids: Optional[List[str]] = None,
+        gpt_model: Optional[str] = None,
     ) -> str:
         """Save or update a conversation in the database"""
+        model_id = model_id or gpt_model
         user_id = decoded_token.get("sub")
         if not user_id:
             raise ValueError("User ID not found in token")
@@ -91,6 +93,7 @@ class ConversationService:
                         f"queries.{index}.timestamp": current_time,
                         f"queries.{index}.attachments": attachment_ids,
                         f"queries.{index}.model_id": model_id,
+                        f"queries.{index}.gpt_model": model_id,
                     }
                 },
             )
@@ -122,6 +125,7 @@ class ConversationService:
                             "timestamp": current_time,
                             "attachments": attachment_ids,
                             "model_id": model_id,
+                            "gpt_model": model_id,
                         }
                     }
                 },
@@ -165,6 +169,7 @@ class ConversationService:
                         "timestamp": current_time,
                         "attachments": attachment_ids,
                         "model_id": model_id,
+                        "gpt_model": model_id,
                     }
                 ],
             }

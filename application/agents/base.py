@@ -38,6 +38,7 @@ class BaseAgent(ABC):
         self.endpoint = endpoint
         self.llm_name = llm_name
         self.model_id = model_id
+        self.gpt_model = model_id
         self.api_key = api_key
         self.user_api_key = user_api_key
         self.prompt = prompt

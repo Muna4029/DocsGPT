@@ -34,7 +34,11 @@ class ReActAgent(BaseAgent):
     """
 
     def __init__(self, *args, **kwargs):
+        gpt_model = kwargs.pop("gpt_model", None)
         super().__init__(*args, **kwargs)
+        if gpt_model is not None:
+            self.gpt_model = gpt_model
+            self.model_id = gpt_model
         self.plan: str = ""
         self.observations: List[str] = []
 
