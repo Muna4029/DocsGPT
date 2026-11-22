@@ -1,0 +1,195 @@
+name: Build and push the docsgpt-sandbox image
+
+# The opt-in code-execution runner (deployment/sandbox). Compose builds it from
+# the checkout, but Kubernetes cannot build, so the manifest under
+# deployment/k8s/deployments/sandbox-deploy.yaml needs a published image.
+#
+# Three ways in: a push to main that touches the runner (tagged `develop`), a
+# release created by hand (the release event), or a call from the backend-release
+# workflow with the version it just tagged — GitHub never starts workflows from
+# events GITHUB_TOKEN produces, so a bot-created release does not fire the
+# release trigger on its own. `github.event_name` is the event that started the
+# whole run, which is `push` when backend-release calls this, so the tag comes
+# from the inputs and the release payload instead.
+
+on:
+  release:
+    types: [published]
+  workflow_call:
+    inputs:
+      version:
+        description: Release tag to build and push (the images are tagged with it)
+        type: string
+        required: true
+      move_latest:
+        description: Also move the `latest` tag onto this build
+        type: boolean
+        default: true
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release tag to build and push (the images are tagged with it)
+        type: string
+        required: true
+      move_latest:
+        description: Also move the `latest` tag onto this build
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - 'deployment/sandbox/**'
+      - '.github/workflows/sandbox-image.yml'
+
+permissions:
+  contents: read
+
+env:
+  # The version being published, or `develop` for a push to main.
+  RELEASE_TAG: ${{ inputs.version || github.event.release.tag_name || 'develop' }}
+
+jobs:
+  build:
+    if: github.repository == 'arc53/DocsGPT'
+    # Publishing jobs run in a GitHub Actions environment so the registry
+    # credentials can be scoped to it and protection rules (required reviewers,
+    # branch restrictions) applied in the repository settings.
+    environment: docker-hub
+    env:
+      # Public namespace the compose files and manifests pull from; the login
+      # secret only authenticates the push.
+      DOCKERHUB_NAMESPACE: arc53
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            suffix: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            suffix: arm64
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Build the source the tag names, not whatever the run was started
+          # from: a manual run dispatched off main would otherwise publish the
+          # current branch under an older version's tags. Resolved under
+          # refs/tags/ so a version that is also a branch name cannot win, and a
+          # version with no tag fails here instead of mislabelling an image.
+          # Falls back to the run's own ref for the push that tags `develop`.
+          ref: ${{ inputs.version && format('refs/tags/{0}', inputs.version) || github.ref }}
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver: docker-container
+
+      - name: Login to DockerHub
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata (OCI labels)
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: |
+            ${{ env.DOCKERHUB_NAMESPACE }}/docsgpt-sandbox
+            ghcr.io/${{ github.repository_owner }}/docsgpt-sandbox
+          labels: |
+            org.opencontainers.image.title=DocsGPT sandbox runner
+            org.opencontainers.image.version=${{ env.RELEASE_TAG }}
+
+      - name: Build and push platform-specific images
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          file: './deployment/sandbox/Dockerfile'
+          platforms: ${{ matrix.platform }}
+          context: ./deployment/sandbox
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_NAMESPACE }}/docsgpt-sandbox:${{ env.RELEASE_TAG }}-${{ matrix.suffix }}
+            ghcr.io/${{ github.repository_owner }}/docsgpt-sandbox:${{ env.RELEASE_TAG }}-${{ matrix.suffix }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_NAMESPACE }}/docsgpt-sandbox:develop
+          cache-to: type=inline
+
+  manifest:
+    if: github.repository == 'arc53/DocsGPT'
+    # Publishing jobs run in a GitHub Actions environment so the registry
+    # credentials can be scoped to it and protection rules (required reviewers,
+    # branch restrictions) applied in the repository settings.
+    environment: docker-hub
+    env:
+      # Public namespace the compose files and manifests pull from; the login
+      # secret only authenticates the push.
+      DOCKERHUB_NAMESPACE: arc53
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver: docker-container
+
+      - name: Login to DockerHub
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push multi-arch manifests
+        env:
+          TAG: ${{ env.RELEASE_TAG }}
+          # Raw facts; the shell below decides from them what `latest` does.
+          IS_PRERELEASE: ${{ github.event.release.prerelease || false }}
+          MOVE_LATEST: ${{ inputs.move_latest }}
+        run: |
+          set -e
+          # `latest` follows this build, except for the rolling `develop` build,
+          # a release marked prerelease (the release trigger fires for those
+          # too), or a manual run that asked it not to. MOVE_LATEST is empty for
+          # a release event and for a push, where the other two rules decide.
+          moving=latest
+          if [ "$TAG" = develop ] || [ "$IS_PRERELEASE" = true ] || [ "$MOVE_LATEST" = false ]; then
+            moving=""
+          fi
+          # $moving is deliberately unquoted: an empty word would create a
+          # manifest named "$repo:".
+          for repo in "$DOCKERHUB_NAMESPACE/docsgpt-sandbox" "ghcr.io/${{ github.repository_owner }}/docsgpt-sandbox"; do
+            for name in "$TAG" $moving; do
+              docker manifest create "$repo:$name" \
+                --amend "$repo:$TAG-amd64" \
+                --amend "$repo:$TAG-arm64"
+              docker manifest push "$repo:$name"
+            done
+          done
