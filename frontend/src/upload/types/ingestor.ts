@@ -1,9 +1,50 @@
-export type IngestorType = 'crawler' | 'github' | 'reddit' | 'url' | 'google_drive' | 'local_file';
+export interface BaseIngestorConfig {
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface RedditIngestorConfig extends BaseIngestorConfig {
+  client_id: string;
+  client_secret: string;
+  user_agent: string;
+  search_queries: string;
+  number_posts: number;
+}
+
+export interface GithubIngestorConfig extends BaseIngestorConfig {
+  repo_url: string;
+}
+
+export interface CrawlerIngestorConfig extends BaseIngestorConfig {
+  url: string;
+}
+
+export interface UrlIngestorConfig extends BaseIngestorConfig {
+  url: string;
+}
+
+export interface GoogleDriveIngestorConfig extends BaseIngestorConfig {
+  folder_id?: string;
+  file_ids?: string;
+  recursive?: boolean;
+  token_info?: any;
+}
+
+export type IngestorType =
+  | 'crawler'
+  | 'github'
+  | 'reddit'
+  | 'url'
+  | 'google_drive';
 
 export interface IngestorConfig {
-  type: IngestorType | null;
+  type: IngestorType;
   name: string;
-  config: Record<string, string | number | boolean | File[]>;
+  config:
+    | RedditIngestorConfig
+    | GithubIngestorConfig
+    | CrawlerIngestorConfig
+    | UrlIngestorConfig
+    | GoogleDriveIngestorConfig;
 }
 
 export type IngestorFormData = {
@@ -13,7 +54,7 @@ export type IngestorFormData = {
   data: string;
 };
 
-export type FieldType = 'string' | 'number' | 'enum' | 'boolean' | 'local_file_picker' | 'remote_file_picker';
+export type FieldType = 'string' | 'number' | 'enum' | 'boolean';
 
 export interface FormField {
   name: string;
@@ -25,28 +66,88 @@ export interface FormField {
 }
 
 export const IngestorFormSchemas: Record<IngestorType, FormField[]> = {
-  crawler: [{ name: 'url', label: 'URL', type: 'string', required: true }],
-  url: [{ name: 'url', label: 'URL', type: 'string', required: true }],
+  crawler: [
+    {
+      name: 'url',
+      label: 'URL',
+      type: 'string',
+      required: true,
+    },
+  ],
+  url: [
+    {
+      name: 'url',
+      label: 'URL',
+      type: 'string',
+      required: true,
+    },
+  ],
   reddit: [
-    { name: 'client_id', label: 'Client ID', type: 'string', required: true },
-    { name: 'client_secret', label: 'Client Secret', type: 'string', required: true },
-    { name: 'user_agent', label: 'User Agent', type: 'string', required: true },
-    { name: 'search_queries', label: 'Search Queries', type: 'string', required: true },
-    { name: 'number_posts', label: 'Number of Posts', type: 'number', required: true },
+    {
+      name: 'client_id',
+      label: 'Client ID',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'client_secret',
+      label: 'Client Secret',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'user_agent',
+      label: 'User Agent',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'search_queries',
+      label: 'Search Queries',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'number_posts',
+      label: 'Number of Posts',
+      type: 'number',
+      required: true,
+    },
   ],
-  github: [{ name: 'repo_url', label: 'Repository URL', type: 'string', required: true }],
+  github: [
+    {
+      name: 'repo_url',
+      label: 'Repository URL',
+      type: 'string',
+      required: true,
+    },
+  ],
   google_drive: [
-    { name: 'file_picker', label: 'Select files', type: 'remote_file_picker', required: true },
-    { name: 'recursive', label: 'Include subfolders', type: 'boolean', required: false },
-  ],
-  local_file: [
-    { name: 'files', label: 'Select files', type: 'local_file_picker', required: true },
+    {
+      name: 'recursive',
+      label: 'Include subfolders',
+      type: 'boolean',
+      required: false,
+    },
   ],
 };
 
-export const IngestorDefaultConfigs: Record<IngestorType, Omit<IngestorConfig, 'type'>> = {
-  crawler: { name: '', config: { url: '' } },
-  url: { name: '', config: { url: '' } },
+export const IngestorDefaultConfigs: Record<
+  IngestorType,
+  Omit<IngestorConfig, 'type'>
+> = {
+  crawler: {
+    name: '',
+    config: {
+      url: '',
+    } as CrawlerIngestorConfig,
+  },
+  url: {
+    name: '',
+    config: {
+      url: '',
+    } as UrlIngestorConfig,
+  },
   reddit: {
     name: '',
     config: {
@@ -54,19 +155,21 @@ export const IngestorDefaultConfigs: Record<IngestorType, Omit<IngestorConfig, '
       client_secret: '',
       user_agent: '',
       search_queries: '',
-      number_posts: 10
-    }
+      number_posts: 10,
+    } as RedditIngestorConfig,
   },
-  github: { name: '', config: { repo_url: '' } },
+  github: {
+    name: '',
+    config: {
+      repo_url: '',
+    } as GithubIngestorConfig,
+  },
   google_drive: {
     name: '',
     config: {
+      folder_id: '',
       file_ids: '',
-      folder_ids: '',
-      recursive: true
-    }
+      recursive: true,
+    } as GoogleDriveIngestorConfig,
   },
-  local_file: { name: '', config: { files: [] } },
 };
-
-

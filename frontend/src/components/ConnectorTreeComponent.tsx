@@ -3,10 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { formatBytes } from '../utils/stringUtils';
 import { selectToken } from '../preferences/preferenceSlice';
-import { ActiveState } from '../models/misc';
 import Chunks from './Chunks';
 import ContextMenu, { MenuOption } from './ContextMenu';
-import ConfirmationModal from '../modals/ConfirmationModal';
 import userService from '../api/services/userService';
 import FileIcon from '../assets/file.svg';
 import FolderIcon from '../assets/folder.svg';
@@ -14,7 +12,6 @@ import ArrowLeft from '../assets/arrow-left.svg';
 import ThreeDots from '../assets/three-dots.svg';
 import EyeView from '../assets/eye-view.svg';
 import SyncIcon from '../assets/sync.svg';
-import CheckmarkIcon from '../assets/checkMark2.svg';
 import { useOutsideAlerter } from '../hooks';
 
 interface FileNode {
@@ -67,7 +64,6 @@ const ConnectorTreeComponent: React.FC<ConnectorTreeComponentProps> = ({
   const [syncProgress, setSyncProgress] = useState<number>(0);
   const [sourceProvider, setSourceProvider] = useState<string>('');
   const [syncDone, setSyncDone] = useState<boolean>(false);
-  const [syncConfirmationModal, setSyncConfirmationModal] = useState<ActiveState>('INACTIVE');
 
   useOutsideAlerter(
     searchDropdownRef,
@@ -231,8 +227,6 @@ const ConnectorTreeComponent: React.FC<ConnectorTreeComponentProps> = ({
     return current;
   };
 
-
-
   const getMenuRef = (id: string) => {
     if (!menuRefs.current[id]) {
       menuRefs.current[id] = React.createRef();
@@ -349,7 +343,7 @@ const ConnectorTreeComponent: React.FC<ConnectorTreeComponentProps> = ({
 
           {/* Sync button */}
           <button
-            onClick={() => setSyncConfirmationModal('ACTIVE')}
+            onClick={handleSync}
             disabled={isSyncing}
             className={`flex h-[38px] min-w-[108px] items-center justify-center rounded-full px-4 text-[14px] font-medium whitespace-nowrap transition-colors ${
               isSyncing
@@ -365,7 +359,7 @@ const ConnectorTreeComponent: React.FC<ConnectorTreeComponentProps> = ({
             }
           >
             <img
-              src={syncDone ? CheckmarkIcon : SyncIcon}
+              src={SyncIcon}
               alt={t('settings.sources.sync')}
               className={`mr-2 h-4 w-4 brightness-0 invert filter ${isSyncing ? 'animate-spin' : ''}`}
             />
@@ -730,17 +724,6 @@ const ConnectorTreeComponent: React.FC<ConnectorTreeComponentProps> = ({
           </div>
         </div>
       )}
-
-      <ConfirmationModal
-        message={t('settings.sources.syncConfirmation', {
-          sourceName,
-        })}
-        modalState={syncConfirmationModal}
-        setModalState={setSyncConfirmationModal}
-        handleSubmit={handleSync}
-        submitLabel={t('settings.sources.sync')}
-        cancelLabel={t('cancel')}
-      />
     </div>
   );
 };
