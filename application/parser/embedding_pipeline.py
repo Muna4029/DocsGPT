@@ -1,7 +1,22 @@
 import os
 import logging
-from retry import retry
-from tqdm import tqdm
+# Make optional external dependencies resilient to missing-install environments (e.g., CI test runners)
+try:
+    from retry import retry
+except Exception:
+    # Provide a lightweight no-op fallback decorator when `retry` is unavailable
+    def retry(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+
+try:
+    from tqdm import tqdm
+except Exception:
+    # Provide a simple passthrough fallback for tqdm when not installed
+    def tqdm(iterable, *args, **kwargs):
+        return iterable
+
 from application.core.settings import settings
 from application.vectorstore.vector_creator import VectorCreator
 

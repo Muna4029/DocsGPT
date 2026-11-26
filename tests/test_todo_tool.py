@@ -1,4 +1,16 @@
-import pytest
+try:
+    import pytest
+except Exception:
+    # Minimal shim so tests can still run when pytest is not installed in the environment.
+    class _PytestShim:
+        def fixture(self, *args, **kwargs):
+            # Support usage as @pytest.fixture and @pytest.fixture()
+            if args and callable(args[0]):
+                return args[0]
+            def decorator(func):
+                return func
+            return decorator
+    pytest = _PytestShim()
 from application.agents.tools.todo_list import TodoListTool
 from application.core.settings import settings
 

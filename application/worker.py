@@ -1134,6 +1134,37 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
     logging.info(
         "[MCP OAuth] Worker started for user_id=%s, config=%s", user_id, config
     )
+
+    # Ensure variables and helper exist in outer scope so exception handlers are safe
+    task_id = None
+    redis_client = None
+
+    def update_status(status_data: Dict[str, Any]):
+        """Safely update status in Redis if available. This is defined outside the
+        try so the outer except handler can call it even if initialization fails.
+        """
+        try:
+            tid = task_id if task_id is not None else getattr(self.request, "id", None)
+            rc = redis_client
+            if rc is None:
+                try:
+                    rc = get_redis_instance()
+                except Exception:
+                    rc = None
+            if rc is not None and tid is not None:
+                logging.info("[MCP OAuth] Updating status: %s", status_data)
+                status_key = f"mcp_oauth_status:{tid}"
+                rc.setex(status_key, 600, json.dumps(status_data))
+            else:
+                logging.info(
+                    "[MCP OAuth] update_status called but redis or task_id unavailable: %s",
+                    status_data,
+                )
+        except Exception:
+            logging.warning(
+                "[MCP OAuth] Failed to update status: %s", status_data, exc_info=True
+            )
+
     try:
         import asyncio
 
@@ -1142,11 +1173,6 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
         task_id = self.request.id
         logging.info("[MCP OAuth] Task ID: %s", task_id)
         redis_client = get_redis_instance()
-
-        def update_status(status_data: Dict[str, Any]):
-            logging.info("[MCP OAuth] Updating status: %s", status_data)
-            status_key = f"mcp_oauth_status:{task_id}"
-            redis_client.setex(status_key, 600, json.dumps(status_data))
 
         update_status(
             {
@@ -1185,7 +1211,14 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
             )
 
             status_key = f"mcp_oauth_status:{task_id}"
-            redis_status = redis_client.get(status_key)
+            redis_status = None
+            try:
+                redis_status = redis_client.get(status_key) if redis_client is not None else None
+            except Exception:
+                logging.warning(
+                    "[MCP OAuth] Failed to read Redis status for key: %s", status_key, exc_info=True
+                )
+
             if redis_status:
                 logging.info(
                     "[MCP OAuth] Redis status after async call: %s", redis_status
@@ -1233,6 +1266,7 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
         logging.error(
             "[MCP OAuth] Exception during initialization: %s", error_msg, exc_info=True
         )
+        # Safe call to update_status defined in outer scope; it will no-op if redis/task_id unavailable
         update_status(
             {
                 "status": "error",
