@@ -1,5 +1,5 @@
 import pytest
-from application.agents.tools.todo_list import TodoListTool
+import application.agents.tools.todo_list as todo_list_module
 from application.core.settings import settings
 
 
@@ -40,10 +40,7 @@ class FakeCollection:
     def find(self, query):
         user_id = query.get("user_id")
         tool_id = query.get("tool_id")
-        filtered = [
-            doc for (uid, tid, _), doc in self.docs.items()
-            if uid == user_id and tid == tool_id
-        ]
+        filtered = [doc for (uid, tid, _), doc in self.docs.items() if uid == user_id and tid == tool_id]
         return FakeCursor(filtered)
 
     def update_one(self, query, update, upsert=False):
@@ -67,12 +64,36 @@ class FakeCollection:
 
 
 @pytest.fixture
-def todo_tool(monkeypatch) -> TodoListTool:
+def todo_tool(monkeypatch) -> todo_list_module.TodoListTool:
     """Provides a TodoListTool with a fake MongoDB backend."""
     fake_collection = FakeCollection()
-    fake_client = {settings.MONGO_DB_NAME: {"todos": fake_collection}}
-    monkeypatch.setattr("application.core.mongo_db.MongoDB.get_client", lambda: fake_client)
-    return TodoListTool({"tool_id": "test_tool"}, user_id="test_user")
+
+    # Provide a fake client that behaves like a pymongo.MongoClient/Database
+    # so code can use both client[db_name]["todos"] and client[db_name].todos
+    class _FakeDB:
+        def __init__(self, collection):
+            self.todos = collection
+
+        def __getitem__(self, name):
+            if name == "todos":
+                return self.todos
+            raise KeyError(name)
+
+    class _FakeClient:
+        def __init__(self, db_name, collection):
+            self._db_name = db_name
+            self._collection = collection
+
+        def __getitem__(self, name):
+            if name == self._db_name:
+                return _FakeDB(self._collection)
+            raise KeyError(name)
+
+    fake_client = _FakeClient(settings.MONGO_DB_NAME, fake_collection)
+
+    # Patch the symbol inside the todo_list module so the tool uses the fake client
+    monkeypatch.setattr("application.agents.tools.todo_list.MongoDB.get_client", lambda: fake_client)
+    return todo_list_module.TodoListTool({"tool_id": "test_tool"}, user_id="test_user")
 
 
 def test_create_and_get(todo_tool: TodoListTool):
@@ -101,7 +122,9 @@ def test_update_todo(todo_tool: TodoListTool):
     create_res = todo_tool.execute_action("todo_create", title="Initial Title")
     todo_id = create_res["todo_id"]
 
-    update_res = todo_tool.execute_action("todo_update", todo_id=todo_id, updates={"title": "Updated Title", "status": "done"})
+    update_res = todo_tool.execute_action(
+        "todo_update", todo_id=todo_id, updates={"title": "Updated Title", "status": "done"}
+    )
     assert update_res["status_code"] == 200
 
     get_res = todo_tool.execute_action("todo_get", todo_id=todo_id)

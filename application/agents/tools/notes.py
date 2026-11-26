@@ -41,7 +41,7 @@ class NotesTool(Tool):
     # -----------------------------
     # Action implementations
     # -----------------------------
-    def execute_action(self, action_name: str, **kwargs: Any) -> str:
+    def execute_action(self, action_name: str, **kwargs: Any) -> dict:
         """Execute an action by name.
 
         Args:
@@ -49,27 +49,32 @@ class NotesTool(Tool):
             **kwargs: Parameters for the action.
 
         Returns:
-            A human-readable string result.
+            A mapping with keys 'status_code' and 'message' (and optional 'data').
         """
         if not self.user_id:
-             return "Error: NotesTool requires a valid user_id."
+            return {"status_code": 400, "message": "Error: NotesTool requires a valid user_id."}
 
         if action_name == "view":
-            return self._get_note()
+            result = self._get_note()
+            return {"status_code": 200, "message": "OK", "data": result}
 
         if action_name == "overwrite":
-            return self._overwrite_note(kwargs.get("text", ""))
+            result = self._overwrite_note(kwargs.get("text", ""))
+            return {"status_code": 200, "message": "OK", "data": result}
 
         if action_name == "str_replace":
-            return self._str_replace(kwargs.get("old_str", ""), kwargs.get("new_str", ""))
+            result = self._str_replace(kwargs.get("old_str", ""), kwargs.get("new_str", ""))
+            return {"status_code": 200, "message": "OK", "data": result}
 
         if action_name == "insert":
-            return self._insert(kwargs.get("line_number", 1), kwargs.get("text", ""))
+            result = self._insert(kwargs.get("line_number", 1), kwargs.get("text", ""))
+            return {"status_code": 200, "message": "OK", "data": result}
 
         if action_name == "delete":
-            return self._delete_note()
+            result = self._delete_note()
+            return {"status_code": 200, "message": "OK", "data": result}
 
-        return f"Unknown action: {action_name}"
+        return {"status_code": 400, "message": f"Unknown action: {action_name}"}
 
     def get_actions_metadata(self) -> List[Dict[str, Any]]:
         """Return JSON metadata describing supported actions for tool schemas."""

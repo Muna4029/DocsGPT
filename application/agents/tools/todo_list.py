@@ -41,7 +41,7 @@ class TodoListTool(Tool):
     # -----------------------------
     # Action implementations
     # -----------------------------
-    def execute_action(self, action_name: str, **kwargs: Any) -> str:
+    def execute_action(self, action_name: str, **kwargs: Any) -> Dict[str, Any]:
         """Execute an action by name.
 
         Args:
@@ -49,33 +49,62 @@ class TodoListTool(Tool):
             **kwargs: Parameters for the action.
 
         Returns:
-            A human-readable string result.
+            A response mapping with 'status_code' and 'body'.
         """
+        # Helper to wrap raw results into a response dict
+        def _wrap_response(result: Any, action: str) -> Dict[str, Any]:
+            # If helper already returned a mapping, pass through
+            if isinstance(result, dict):
+                return result
+
+            # Default body is the raw result
+            body = result
+
+            # Determine status code
+            status = 200
+            if isinstance(body, str) and body.startswith("Error:"):
+                # Not found errors should be 404, other errors 400
+                if "not found" in body.lower():
+                    status = 404
+                else:
+                    status = 400
+            else:
+                # Successful create should return 201
+                if action == "create":
+                    status = 201
+                else:
+                    status = 200
+
+            return {"status_code": status, "body": body}
+
         if not self.user_id:
-            return "Error: TodoListTool requires a valid user_id."
+            return _wrap_response("Error: TodoListTool requires a valid user_id.", action_name)
 
         if action_name == "list":
-            return self._list()
+            return _wrap_response(self._list(), action_name)
 
         if action_name == "create":
-            return self._create(kwargs.get("title", ""))
+            return _wrap_response(self._create(kwargs.get("title", "")), action_name)
 
         if action_name == "get":
-            return self._get(kwargs.get("todo_id"))
+            return _wrap_response(self._get(kwargs.get("todo_id")), action_name)
 
         if action_name == "update":
-            return self._update(
-                kwargs.get("todo_id"),
-                kwargs.get("title", "")
+            return _wrap_response(
+                self._update(
+                    kwargs.get("todo_id"),
+                    kwargs.get("title", "")
+                ),
+                action_name,
             )
 
         if action_name == "complete":
-            return self._complete(kwargs.get("todo_id"))
+            return _wrap_response(self._complete(kwargs.get("todo_id")), action_name)
 
         if action_name == "delete":
-            return self._delete(kwargs.get("todo_id"))
+            return _wrap_response(self._delete(kwargs.get("todo_id")), action_name)
 
-        return f"Unknown action: {action_name}"
+        return _wrap_response(f"Unknown action: {action_name}", action_name)
 
     def get_actions_metadata(self) -> List[Dict[str, Any]]:
         """Return JSON metadata describing supported actions for tool schemas."""
