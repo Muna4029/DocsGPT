@@ -423,7 +423,6 @@ class TestCompleteStreamMethod:
                     resource.complete_stream(
                         question="Test?",
                         agent=mock_agent,
-                        retriever=mock_retriever,
                         conversation_id=None,
                         user_api_key=None,
                         decoded_token=decoded_token,
@@ -457,7 +456,6 @@ class TestCompleteStreamMethod:
                 resource.complete_stream(
                     question="Test question?",
                     agent=mock_agent,
-                    retriever=mock_retriever,
                     conversation_id=None,
                     user_api_key="test_key",
                     decoded_token=decoded_token,

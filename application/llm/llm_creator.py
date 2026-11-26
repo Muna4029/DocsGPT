@@ -26,10 +26,11 @@ class LLMCreator:
     }
 
     @classmethod
-    def create_llm(cls, type, api_key, user_api_key, decoded_token, *args, **kwargs):
-        llm_class = cls.llms.get(type.lower())
+    def create_llm(cls, llm_type, api_key, user_api_key, decoded_token=None, *args, **kwargs):
+        llm_type_key = str(llm_type).lower() if llm_type is not None else ""
+        llm_class = cls.llms.get(llm_type_key)
         if not llm_class:
-            raise ValueError(f"No LLM class found for type {type}")
+            raise ValueError(f"No LLM class found for type {llm_type}")
         return llm_class(
             api_key, user_api_key, decoded_token=decoded_token, *args, **kwargs
         )
