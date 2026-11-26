@@ -1,4 +1,3 @@
-import datetime
 import pytest
 from application.agents.tools.todo_list import TodoListTool
 
@@ -27,7 +26,11 @@ def todo_tool(monkeypatch) -> TodoListTool:
                 # Create new doc by merging query and update["$set"]
                 self.doc = {**query, **update.get("$set", {})}
                 return type("res", (), {"matched_count": 1})
-            elif self.doc and self.doc.get("user_id") == query.get("user_id") and self.doc.get("tool_id") == query.get("tool_id"):
+            elif (
+                self.doc
+                and self.doc.get("user_id") == query.get("user_id")
+                and self.doc.get("tool_id") == query.get("tool_id")
+            ):
                 self.doc.update(update.get("$set", {}))
                 return type("res", (), {"matched_count": 1})
             else:
