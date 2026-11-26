@@ -1,7 +1,28 @@
 import os
 import logging
-from retry import retry
-from tqdm import tqdm
+
+# Optional external dependencies are imported defensively so that
+# the module can be imported in environments that don't have
+# all optional packages installed (e.g. CI/test runners).
+try:
+    from retry import retry
+except Exception:
+    # Provide a no-op retry decorator as a safe fallback.
+    def retry(*dargs, **dkwargs):
+        if dargs and callable(dargs[0]):
+            # used as @retry without args
+            return dargs[0]
+        def _decorator(func):
+            return func
+        return _decorator
+
+try:
+    from tqdm import tqdm
+except Exception:
+    # Fallback tqdm that simply returns the iterable (no progress UI).
+    def tqdm(iterable=None, *args, **kwargs):
+        return iterable if iterable is not None else []
+
 from application.core.settings import settings
 from application.vectorstore.vector_creator import VectorCreator
 

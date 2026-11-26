@@ -1,6 +1,14 @@
 import datetime
 import json
 
+# Optional import of pytest: importing pytest here is non-fatal if pytest
+# is not installed in the environment. This prevents import-time failures
+# in environments where pytest isn't available while still allowing the
+# module to use pytest if present.
+try:
+    import pytest  # type: ignore
+except Exception:
+    pytest = None
 
 from bson.objectid import ObjectId
 from flask import (

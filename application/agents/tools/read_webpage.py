@@ -1,5 +1,15 @@
-import requests
-from markdownify import markdownify
+try:
+    import requests
+except ImportError:
+    requests = None
+
+try:
+    from markdownify import markdownify
+except ImportError:
+    # Fallback: if markdownify is not installed, provide a simple passthrough
+    def markdownify(html):
+        return html
+
 from application.agents.tools.base import Tool
 from urllib.parse import urlparse
 

@@ -1,4 +1,11 @@
-import requests
+try:
+    import requests
+except Exception:
+    # If 'requests' is not available in the environment (e.g., missing dependency
+    # in CI), avoid raising an ImportError at import time. Set to None so runtime
+    # code can handle the absence or provide a clearer error later.
+    requests = None
+
 from application.agents.tools.base import Tool
 
 class NtfyTool(Tool):

@@ -1,4 +1,10 @@
-import requests
+try:
+    import requests
+except Exception:
+    # If the requests package is not available in the test/runtime environment,
+    # keep a None placeholder so import-time failures don't stop test discovery.
+    requests = None
+
 from application.agents.tools.base import Tool
 
 

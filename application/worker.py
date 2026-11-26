@@ -627,8 +627,9 @@ def remote_worker(
             min_tokens=MIN_TOKENS,
             duplicate_headers=False,
         )
-        docs = chunker.chunk(documents=raw_docs)
-        docs = [Document.to_langchain_format(raw_doc) for raw_doc in raw_docs]
+        # Ensure we convert the chunked documents (not the raw docs) to langchain format
+        chunked_docs = chunker.chunk(documents=raw_docs)
+        docs = [Document.to_langchain_format(doc) for doc in chunked_docs]
         tokens = count_tokens_docs(docs)
         logging.info("Total tokens calculated: %d", tokens)
 
@@ -833,8 +834,14 @@ def agent_webhook_worker(self, agent_id, payload):
         result = run_agent_logic(agent_config, input_data)
     except Exception as e:
         logging.error(f"Error running agent logic: {e}", exc_info=True)
+        # Ensure state is updated and logging occurs before returning error
+        self.update_state(state="PROGRESS", meta={"current": 100})
+        logging.info(
+            f"Webhook processed for agent {agent_id}", extra={"agent_id": agent_id}
+        )
         return {"status": "error", "error": str(e)}
-    finally:
+    else:
+        # Successful execution path
         self.update_state(state="PROGRESS", meta={"current": 100})
         logging.info(
             f"Webhook processed for agent {agent_id}", extra={"agent_id": agent_id}

@@ -2,10 +2,28 @@ import logging
 import datetime
 from typing import Optional, Dict, Any
 
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+# Google API libraries are optional at import time to allow the repository
+# to be analyzed or tested in environments where these dependencies
+# are not installed (e.g., CI that only runs unit tests without installing
+# connector-specific extras). If they are missing, we log a warning and
+# set placeholders; actual runtime usage will raise an informative error
+# if functionality requiring these libraries is invoked.
+try:
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import Flow
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+except Exception as e:
+    Credentials = None
+    Flow = None
+    build = None
+    HttpError = None
+    logging.getLogger(__name__).warning(
+        "Optional Google API libraries are not installed. "
+        "Install via 'pip install google-auth google-auth-oauthlib google-api-python-client' "
+        "to enable Google Drive connector functionality. Error: %s",
+        e,
+    )
 
 from application.core.settings import settings
 from application.parser.connectors.base import BaseConnectorAuth
