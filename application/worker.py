@@ -704,8 +704,9 @@ def remote_worker(
             min_tokens=MIN_TOKENS,
             duplicate_headers=False,
         )
-        docs = chunker.chunk(documents=raw_docs)
-        docs = [Document.to_langchain_format(raw_doc) for raw_doc in raw_docs]
+        # Use the chunked output for subsequent conversion and token counting
+        chunked_docs = chunker.chunk(documents=raw_docs)
+        docs = [Document.to_langchain_format(raw_doc) for raw_doc in chunked_docs]
         tokens = count_tokens_docs(docs)
         logging.info("Total tokens calculated: %d", tokens)
 
@@ -916,12 +917,19 @@ def agent_webhook_worker(self, agent_id, payload):
     except Exception as e:
         logging.error(f"Error running agent logic: {e}", exc_info=True)
         return {"status": "error", "error": str(e)}
-    finally:
+    else:
+        # Success path: update state, log, and return result. Do not rely on finally to return.
         self.update_state(state="PROGRESS", meta={"current": 100})
         logging.info(
             f"Webhook processed for agent {agent_id}", extra={"agent_id": agent_id}
         )
         return {"status": "success", "result": result}
+    finally:
+        # Only perform safe cleanup/logging here. Do not return from finally (would override above returns).
+        try:
+            self.update_state(state="PROGRESS", meta={"current": 100})
+        except Exception:
+            logging.exception("Failed to update state in finally block for agent_webhook_worker")
 
 
 def ingest_connector(
@@ -1134,19 +1142,25 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
     logging.info(
         "[MCP OAuth] Worker started for user_id=%s, config=%s", user_id, config
     )
+
+    # Ensure we have a safe task_id and a robust update_status available even if initialization fails
+    task_id = getattr(getattr(self, 'request', None), 'id', None)
+
+    def update_status(status_data: Dict[str, Any]):
+        try:
+            logging.info("[MCP OAuth] Updating status: %s", status_data)
+            redis_client = get_redis_instance()
+            status_key = f"mcp_oauth_status:{status_data.get('task_id', task_id)}"
+            redis_client.setex(status_key, 600, json.dumps(status_data))
+        except Exception:
+            logging.exception("[MCP OAuth] Failed to update status in Redis")
+
     try:
         import asyncio
 
         from application.agents.tools.mcp_tool import MCPTool
 
-        task_id = self.request.id
         logging.info("[MCP OAuth] Task ID: %s", task_id)
-        redis_client = get_redis_instance()
-
-        def update_status(status_data: Dict[str, Any]):
-            logging.info("[MCP OAuth] Updating status: %s", status_data)
-            status_key = f"mcp_oauth_status:{task_id}"
-            redis_client.setex(status_key, 600, json.dumps(status_data))
 
         update_status(
             {
@@ -1159,10 +1173,23 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
         tool_config = config.copy()
         tool_config["oauth_task_id"] = task_id
         logging.info("[MCP OAuth] Initializing MCPTool with config: %s", tool_config)
-        mcp_tool = MCPTool(tool_config, user_id)
+
+        # Initialize MCPTool but guard against unexpected keys that may be forwarded to agents
+        try:
+            mcp_tool = MCPTool(tool_config, user_id)
+        except TypeError as e:
+            # Attempt to sanitize known problematic keys (e.g., gpt_model) and retry once
+            logging.warning(
+                "[MCP OAuth] MCPTool init TypeError: %s. Attempting to sanitize config.", e
+            )
+            sanitized = tool_config.copy()
+            for suspect in ("gpt_model", "model", "gptModel"):
+                if suspect in sanitized:
+                    sanitized.pop(suspect, None)
+            mcp_tool = MCPTool(sanitized, user_id)
 
         async def run_oauth_discovery():
-            if not mcp_tool._client:
+            if not getattr(mcp_tool, "_client", None):
                 mcp_tool._setup_client()
             return await mcp_tool._execute_with_client("list_tools")
 
@@ -1185,7 +1212,10 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
             )
 
             status_key = f"mcp_oauth_status:{task_id}"
-            redis_status = redis_client.get(status_key)
+            try:
+                redis_status = get_redis_instance().get(status_key)
+            except Exception:
+                redis_status = None
             if redis_status:
                 logging.info(
                     "[MCP OAuth] Redis status after async call: %s", redis_status
@@ -1233,14 +1263,17 @@ def mcp_oauth(self, config: Dict[str, Any], user_id: str = None) -> Dict[str, An
         logging.error(
             "[MCP OAuth] Exception during initialization: %s", error_msg, exc_info=True
         )
-        update_status(
-            {
-                "status": "error",
-                "message": error_msg,
-                "error": str(e),
-                "task_id": task_id,
-            }
-        )
+        try:
+            update_status(
+                {
+                    "status": "error",
+                    "message": error_msg,
+                    "error": str(e),
+                    "task_id": task_id,
+                }
+            )
+        except Exception:
+            logging.exception("[MCP OAuth] Failed to update status in outer exception handler")
         return {"success": False, "error": error_msg}
 
 

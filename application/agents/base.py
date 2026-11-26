@@ -21,8 +21,9 @@ class BaseAgent(ABC):
         self,
         endpoint: str,
         llm_name: str,
-        model_id: str,
-        api_key: str,
+        model_id: Optional[str] = None,
+        gpt_model: Optional[str] = None,
+        api_key: str = None,
         user_api_key: Optional[str] = None,
         prompt: str = "",
         chat_history: Optional[List[Dict]] = None,
@@ -37,7 +38,9 @@ class BaseAgent(ABC):
     ):
         self.endpoint = endpoint
         self.llm_name = llm_name
-        self.model_id = model_id
+        # Support callers that may provide either `model_id` (old API) or `gpt_model` (new callers)
+        resolved_model_id = model_id if model_id is not None else gpt_model
+        self.model_id = resolved_model_id
         self.api_key = api_key
         self.user_api_key = user_api_key
         self.prompt = prompt
@@ -52,7 +55,7 @@ class BaseAgent(ABC):
             api_key=api_key,
             user_api_key=user_api_key,
             decoded_token=decoded_token,
-            model_id=model_id,
+            model_id=resolved_model_id,
         )
         self.retrieved_docs = retrieved_docs or []
         self.llm_handler = LLMHandlerCreator.create_handler(

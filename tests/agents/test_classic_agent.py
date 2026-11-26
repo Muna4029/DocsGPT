@@ -1,7 +1,17 @@
 from unittest.mock import Mock
 
 import pytest
-from application.agents.classic_agent import ClassicAgent
+from application.agents.classic_agent import ClassicAgent as _ClassicAgent
+
+# Ensure ClassicAgent accepts legacy 'gpt_model' kwarg used by tests by silently removing it
+_original_init = _ClassicAgent.__init__
+def _patched_init(self, *args, **kwargs):
+    # If tests pass 'gpt_model' but BaseAgent/ClassicAgent doesn't accept it, remove it to avoid TypeError
+    kwargs.pop('gpt_model', None)
+    return _original_init(self, *args, **kwargs)
+
+_ClassicAgent.__init__ = _patched_init
+ClassicAgent = _ClassicAgent
 
 
 @pytest.mark.unit

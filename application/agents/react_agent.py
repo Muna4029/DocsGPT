@@ -33,7 +33,13 @@ class ReActAgent(BaseAgent):
     4. Synthesizes final answer from all observations
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, gpt_model=None, **kwargs):
+        # Consume known agent-specific kwargs so they are not forwarded to BaseAgent
+        if 'gpt_model' in kwargs:
+            gpt_model = kwargs.pop('gpt_model')
+        # retain for agent use if provided
+        self.gpt_model = gpt_model
+
         super().__init__(*args, **kwargs)
         self.plan: str = ""
         self.observations: List[str] = []
