@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List, Optional, Any
+from typing import List, Any
 from retry import retry
 from tqdm import tqdm
 from application.core.settings import settings
@@ -10,34 +10,34 @@ from application.vectorstore.vector_creator import VectorCreator
 def sanitize_content(content: str) -> str:
     """
     Remove NUL characters that can cause vector store ingestion to fail.
-    
+
     Args:
         content (str): Raw content that may contain NUL characters
-        
+
     Returns:
         str: Sanitized content with NUL characters removed
     """
     if not content:
         return content
-    return content.replace('\x00', '')
+    return content.replace("\x00", "")
 
 
 @retry(tries=10, delay=60)
 def add_text_to_store_with_retry(store: Any, doc: Any, source_id: str) -> None:
     """Add a document's text and metadata to the vector store with retry logic.
-    
+
     Args:
         store: The vector store object.
         doc: The document to be added.
         source_id: Unique identifier for the source.
-        
+
     Raises:
         Exception: If document addition fails after all retry attempts.
     """
     try:
         # Sanitize content to remove NUL characters that cause ingestion failures
         doc.page_content = sanitize_content(doc.page_content)
-        
+
         doc.metadata["source_id"] = str(source_id)
         store.add_texts([doc.page_content], metadatas=[doc.metadata])
     except Exception as e:
@@ -56,7 +56,7 @@ def embed_and_store_documents(docs: List[Any], folder_name: str, source_id: str,
 
     Returns:
         None
-        
+
     Raises:
         OSError: If unable to create folder or save vector store.
         Exception: If vector store creation or document embedding fails.
